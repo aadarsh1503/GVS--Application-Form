@@ -24,7 +24,7 @@ const Signup = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:5000/admin/signup', {
+      const res = await fetch('https://gvs-application-form.onrender.com/admin/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
