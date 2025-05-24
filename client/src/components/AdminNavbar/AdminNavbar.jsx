@@ -5,7 +5,7 @@ const AdminNavbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
-    window.location.href = '/login'; // or use navigate('/login') if using useNavigate
+    navigate('/login');
   };
 
   return (

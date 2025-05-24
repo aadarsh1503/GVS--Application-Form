@@ -11,24 +11,34 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log('Login attempt started...');
+    console.log('Email:', email);
+    console.log('Password:', password); // For security, remove this in production
+
     try {
-      const res = await fetch('https://gvs-application-form.onrender.com/admin/login', {
+      const res = await fetch('http://localhost:5000/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
+      console.log('Server response:', data);
+
       if (res.ok) {
-        sessionStorage.setItem('adminToken', data.token); // changed from localStorage
+        localStorage.setItem('adminToken', data.token);
+        console.log('Login successful, token stored in sessionStorage');
         navigate('/dashboard');
       } else {
+        console.log('Login failed:', data.message);
         alert(data.message || 'Login failed');
       }
     } catch (error) {
+      console.error('An error occurred during login:', error);
       alert('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
+      console.log('Login attempt ended.');
     }
   };
 
@@ -40,7 +50,7 @@ const Login = () => {
             <h1 className="text-3xl font-bold mb-2">Admin Portal</h1>
             <p className="opacity-90">Enter your credentials to access the dashboard</p>
           </div>
-          
+
           <form onSubmit={handleLogin} className="p-8 space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -56,7 +66,7 @@ const Login = () => {
                 required
               />
             </div>
-            
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -71,27 +81,7 @@ const Login = () => {
                 required
               />
             </div>
-            
-            {/* <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </label>
-              </div>
-              
-              <div className="text-sm">
-                <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                  Forgot password?
-                </a>
-              </div>
-            </div> */}
-            
+
             <button
               type="submit"
               disabled={isLoading}
@@ -108,7 +98,7 @@ const Login = () => {
               ) : 'Sign in'}
             </button>
           </form>
-          
+
           <div className="px-8 py-4 bg-gray-50 border-t border-gray-200 text-center">
             <p className="text-xs text-gray-500">
               &copy; {new Date().getFullYear()} Global Vision Solutions. All rights reserved.

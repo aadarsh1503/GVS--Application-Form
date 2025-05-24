@@ -399,7 +399,7 @@ const MultiStepForm = () => {
           if (file) formDataToSend.append('file', file);
   
           console.log('Sending form data to server');
-          const response = await fetch('https://gvs-application-form.onrender.com/submit-form', {
+          const response = await fetch('http://localhost:5000/submit-form', {
               method: 'POST',
               body: formDataToSend,
           });

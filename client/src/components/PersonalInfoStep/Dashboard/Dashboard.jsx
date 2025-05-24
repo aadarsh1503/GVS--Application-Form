@@ -59,7 +59,7 @@ const Dashboard = () => {
         }
       });
   
-      const response = await axios.get('https://gvs-application-form.onrender.com/admin/form-entries', { params });
+      const response = await axios.get('http://localhost:5000/admin/form-entries', { params });
       
       const processedEntries = response.data.map(entry => {
         const visaExpired = entry.passportValidity && 
