@@ -269,6 +269,9 @@ app.post('/submit-form', upload.single('file'), (req, res) => {
     res.status(200).send('Form and file submitted successfully!');
   });
 });
+app.get('/', (req, res) => {
+  res.send('Server is working!');
+});
 
 // Start server
 app.listen(PORT, () => {
