@@ -34,13 +34,13 @@ const AdditionalInfoStep = ({
               isSubmitted && errors.visaStatus ? 'border-red-500' : 'border-gray-300'
             }`}
           >
-            <option value="">Select visa status</option>
-            <option value="WORKING_VISA">Working Visa</option>
-            <option value="VISIT_VISA">Visit Visa</option>
-            <option value="FAMILY_VISA">Family Visa</option>
-            <option value="FLEXI_VISA">Flexi Visa</option>
-            <option value="GOLDEN_VISA">Golden Visa</option>
-            <option value="OTHERS">Others</option>
+             <option value="">Select visa status</option>
+  <option value="Working Visa">Working Visa</option>
+  <option value="Visit Visa">Visit Visa</option>
+  <option value="Family Visa">Family Visa</option>
+  <option value="Flexi Visa">Flexi Visa</option>
+  <option value="Golden Visa">Golden Visa</option>
+  <option value="Others">Others</option>
           </select>
           {isSubmitted && errors.visaStatus && (
             <p className="text-red-500 text-xs mt-1">{errors.visaStatus}</p>
@@ -103,11 +103,11 @@ const AdditionalInfoStep = ({
 
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
         <div className="flex flex-col items-center justify-center">
-          <FaUpload className="text-3xl text-primary mb-2" />
+          <FaUpload className="text-3xl text-[#3B82F6] mb-2" />
           <p className="text-sm text-gray-600 mb-2">
             Upload 1 supported file: PDF, document, or image. Max 10 MB.
           </p>
-          <label className="cursor-pointer bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors duration-300">
+          <label className="cursor-pointer bg-[#3B82F6] text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors duration-300">
             Choose File
             <input
               type="file"

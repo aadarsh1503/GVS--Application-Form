@@ -12,7 +12,44 @@ const PORT = 5000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Add this near your other require statements at the top
+const fs = require('fs');
+
+// ... (your other middleware and routes)
+
+// File download/view route
+app.get('/uploads/:filename', (req, res) => {
+  try {
+    const filename = path.basename(req.params.filename);
+    const filePath = path.join(__dirname, 'uploads', filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).send('File not found');
+    }
+
+    // Force download if ?download=true parameter exists
+    if (req.query.download === 'true') {
+      res.download(filePath, filename, (err) => {
+        if (err) {
+          console.error('Download error:', err);
+          res.status(500).send('Error downloading file');
+        }
+      });
+    } else {
+      // Otherwise serve normally (for iframe viewing)
+      res.sendFile(filePath, (err) => {
+        if (err) {
+          console.error('File send error:', err);
+          res.status(500).send('Error loading file');
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Route error:', error);
+    res.status(500).send('Server error');
+  }
+});
 
 // MySQL connection
 const db = mysql.createConnection({
@@ -29,6 +66,40 @@ db.connect((err) => {
   }
   console.log('Connected to MySQL');
 });
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+// Signup
+app.post('/admin/signup', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  db.query('INSERT INTO admin_users (email, password) VALUES (?, ?)', [email, hashedPassword], (err, result) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ message: 'User already exists' });
+      console.error(err);
+      return res.status(500).json({ message: 'Server error' });
+    }
+    res.status(201).json({ message: 'Admin user registered' });
+  });
+});
+
+// Login
+app.post('/admin/login', (req, res) => {
+  const { email, password } = req.body;
+  db.query('SELECT * FROM admin_users WHERE email = ?', [email], async (err, results) => {
+    if (err) return res.status(500).json({ message: 'Server error' });
+    if (results.length === 0) return res.status(401).json({ message: 'Invalid credentials' });
+
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+
+    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'your_secret', { expiresIn: '2h' });
+    res.json({ token });
+  });
+});
 
 // Multer config for file upload
 const storage = multer.diskStorage({
@@ -42,6 +113,109 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
+
+
+app.get('/admin/form-entries', (req, res) => {
+  let baseQuery = 'SELECT * FROM form_entries';
+  const conditions = [];
+  const values = [];
+
+  // Search term (name, email, skills)
+  if (req.query.searchTerm) {
+    conditions.push('(fullName LIKE ? OR email LIKE ? OR skills LIKE ?)');
+    values.push(`%${req.query.searchTerm}%`, `%${req.query.searchTerm}%`, `%${req.query.searchTerm}%`);
+  }
+
+  // Email filter
+  if (req.query.email) {
+    conditions.push('email LIKE ?');
+    values.push(`%${req.query.email}%`);
+  }
+
+  // Nationality filter (case-insensitive partial match)
+  if (req.query.nationality) {
+    conditions.push('LOWER(nationality) LIKE LOWER(?)');
+    values.push(`%${req.query.nationality}%`);
+  }
+
+  // Employment status
+  if (req.query.currentlyEmployed) {
+    conditions.push('currentlyEmployed = ?');
+    values.push(req.query.currentlyEmployed);
+  }
+
+  // Education level
+  if (req.query.educationLevel) {
+    conditions.push('educationLevel = ?');
+    values.push(req.query.educationLevel);
+  }
+
+  // Visa status
+  if (req.query.visaStatus) {
+    if (req.query.visaStatus === 'Expired') {
+      conditions.push('(passportValidity IS NOT NULL AND passportValidity < CURRENT_DATE)');
+    } else if (req.query.visaStatus === 'Valid') {
+      conditions.push('(passportValidity IS NOT NULL AND passportValidity >= CURRENT_DATE)');
+    } else if (req.query.visaStatus === 'None') {
+      conditions.push('passportValidity IS NULL');
+    }
+  }
+
+  // Date range filtering
+  if (req.query.dateRange && req.query.dateRange !== 'all') {
+    switch (req.query.dateRange) {
+      case 'today':
+        conditions.push('DATE(submittedAt) = CURRENT_DATE');
+        break;
+      case '24h':
+        conditions.push('submittedAt >= DATE_SUB(NOW(), INTERVAL 24 HOUR)');
+        break;
+      case '7d':
+        conditions.push('submittedAt >= DATE_SUB(NOW(), INTERVAL 7 DAY)');
+        break;
+      case '30d':
+        conditions.push('submittedAt >= DATE_SUB(NOW(), INTERVAL 30 DAY)');
+        break;
+      case '1y':
+        conditions.push('submittedAt >= DATE_SUB(NOW(), INTERVAL 1 YEAR)');
+        break;
+      case 'custom':
+        if (req.query.customStart) {
+          conditions.push('submittedAt >= ?');
+          values.push(new Date(req.query.customStart).toISOString().slice(0, 19).replace('T', ' '));
+        }
+        if (req.query.customEnd) {
+          conditions.push('submittedAt <= ?');
+          values.push(new Date(req.query.customEnd).toISOString().slice(0, 19).replace('T', ' '));
+        }
+        break;
+    }
+  }
+
+  // Add sorting (newest first by default)
+  baseQuery += conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
+  baseQuery += ' ORDER BY submittedAt DESC';
+
+  db.query(baseQuery, values, (err, results) => {
+    if (err) {
+      console.error('Error fetching form entries:', err);
+      return res.status(500).send('Error retrieving data');
+    }
+    
+    // Process results to add calculated visa status
+    const processedResults = results.map(entry => {
+      const visaExpired = entry.passportValidity && 
+        new Date(entry.passportValidity) < new Date();
+      return {
+        ...entry,
+        visaStatus: visaExpired ? 'Expired' : (entry.visaStatus || 'None')
+      };
+    });
+    
+    res.status(200).json(processedResults);
+  });
+});
+
 
 // Route to handle form submission with file upload
 app.post('/submit-form', upload.single('file'), (req, res) => {

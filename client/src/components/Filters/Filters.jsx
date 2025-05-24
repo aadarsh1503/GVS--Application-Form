@@ -1,0 +1,239 @@
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+
+const Filters = ({ filters, setFilters, darkMode, clearAllFilters }) => {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const handleCustomDateChange = (date, field) => {
+    setFilters({
+      ...filters,
+      [field]: date ? date.toISOString() : ''
+    });
+  };
+  
+  const handleDateRangeChange = (range) => {
+    let startDate = null;
+    let endDate = new Date();
+    
+    switch (range) {
+      case 'today':
+        startDate = new Date();
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case '24h':
+        startDate = new Date();
+        startDate.setHours(startDate.getHours() - 24);
+        break;
+      case '7d':
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case '30d':
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        break;
+      case '1y':
+        startDate = new Date();
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
+      case 'custom':
+        // Don't set dates for custom, let user pick them
+        break;
+      default:
+        startDate = null;
+        endDate = null;
+    }
+
+    setFilters({
+      ...filters,
+      dateRange: range,
+      customStart: range === 'custom' ? filters.customStart : startDate?.toISOString() || '',
+      customEnd: range === 'custom' ? filters.customEnd : endDate?.toISOString() || ''
+    });
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={`rounded-xl p-5 shadow-md mb-6 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}
+    >
+      <div className="flex justify-between items-start mb-4">
+        <h2 className={`text-lg font-semibold text-gray-800 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Filters</h2>
+        <button
+          onClick={clearAllFilters}
+          className="text-sm text-indigo-600 cursor-pointer hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
+        >
+          Clear all
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Search</label>
+          <input
+            type="text"
+            placeholder="Name, email, skills..."
+            value={filters.searchTerm}
+            onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
+            className={`w-full px-3 py-2 rounded-lg border text-gray-800 placeholder-gray-500 ${
+              darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+              : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+            }`}
+          />
+        </div>
+        
+        <div>
+          <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Nationality</label>
+          <input
+            type="text"
+            placeholder="Any nationality"
+            value={filters.nationality}
+            onChange={(e) => setFilters({ ...filters, nationality: e.target.value })}
+            className={`w-full px-3 py-2 rounded-lg border text-gray-800 placeholder-gray-500 ${
+              darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+              : 'bg-white border-gray-300 text-gray-800 placeholder-gray-500'
+            }`}
+          />
+        </div>
+        
+        <div>
+          <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Employment</label>
+          <select
+            value={filters.currentlyEmployed}
+            onChange={(e) => setFilters({ ...filters, currentlyEmployed: e.target.value })}
+            className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+              darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+              : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          >
+            <option value="" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Any status</option>
+            <option value="Yes" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Employed</option>
+            <option value="No" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Not employed</option>
+          </select>
+        </div>
+        
+        <div>
+          <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Date Range</label>
+          <select
+            value={filters.dateRange}
+            onChange={(e) => handleDateRangeChange(e.target.value)}
+            className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+              darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+              : 'bg-white border-gray-300 text-gray-800'
+            }`}
+          >
+            <option value="all" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>All time</option>
+            <option value="today" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Today</option>
+            <option value="24h" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Last 24 hours</option>
+            <option value="7d" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Last 7 days</option>
+            <option value="30d" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Last 30 days</option>
+            <option value="1y" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Last year</option>
+            <option value="custom" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Custom range</option>
+          </select>
+        </div>
+      </div>
+
+      <button
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        className="mt-4 text-sm text-indigo-600 cursor-pointer hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 flex items-center"
+      >
+        {showAdvanced ? 'Hide' : 'Show'} advanced filters
+        <svg
+          className={`ml-1 h-4 w-4 transform transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {showAdvanced && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          <div>
+            <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Education Level</label>
+            <select
+              value={filters.educationLevel}
+              onChange={(e) => setFilters({ ...filters, educationLevel: e.target.value })}
+              className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+                darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+                : 'bg-white border-gray-300 text-gray-800'
+              }`}
+            >
+              <option value="" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Any education</option>
+              <option value="Secondary Level" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Secondary Level</option>
+              <option value="College Graduate" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>College Graduate</option>
+              <option value="Post Graduate" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Post Graduate</option>
+              <option value="Vocational" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Vocational</option>
+              <option value="Technical" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Technical</option>
+              <option value="Associate Diploma" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Associate Diploma</option>
+              <option value="Others" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Others</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Visa Status</label>
+            <select
+              value={filters.visaStatus}
+              onChange={(e) => setFilters({ ...filters, visaStatus: e.target.value })}
+              className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+                darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+                : 'bg-white border-gray-300 text-gray-800'
+              }`}
+            >
+              <option value="" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Any status</option>
+              <option value="Valid" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Valid</option>
+              <option value="Expired" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Expired</option>
+              <option value="None" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>None</option>
+            </select>
+          </div>
+          
+          {filters.dateRange === 'custom' && (
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">From</label>
+                <DatePicker
+                  selected={filters.customStart ? new Date(filters.customStart) : null}
+                  onChange={(date) => handleCustomDateChange(date, 'customStart')}
+                  selectsStart
+                  startDate={filters.customStart ? new Date(filters.customStart) : null}
+                  endDate={filters.customEnd ? new Date(filters.customEnd) : null}
+                  className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                  }`}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">To</label>
+                <DatePicker
+                  selected={filters.customEnd ? new Date(filters.customEnd) : null}
+                  onChange={(date) => handleCustomDateChange(date, 'customEnd')}
+                  selectsEnd
+                  startDate={filters.customStart ? new Date(filters.customStart) : null}
+                  endDate={filters.customEnd ? new Date(filters.customEnd) : null}
+                  minDate={filters.customStart ? new Date(filters.customStart) : null}
+                  className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+                    darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+                    : 'bg-white border-gray-300 text-gray-800'
+                  }`}
+                />
+              </div>
+            </div>
+          )}
+        </motion.div>
+      )}
+    </motion.div>
+  );
+};
+
+export default Filters;

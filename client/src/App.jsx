@@ -1,21 +1,50 @@
-import { useState } from 'react'
-import { BrowserRouter as Router } from 'react-router-dom'; // Add this import
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import "./index.css"
-import MultiStepForm from './components/MultiStepForm/MultiStepForm'
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
+import MultiStepForm from './components/MultiStepForm/MultiStepForm';
+import Dashboard from './components/PersonalInfoStep/Dashboard/Dashboard';
+import Login from './components/Login/Login';
+import Signup from './components/Signup/Signup';
 
-  return (
-    <Router> {/* Wrap your app with Router */}
-      <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
-        <MultiStepForm />
-      </div>
-    </Router>
-  )
-}
 
-export default App
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = localStorage.getItem('adminToken');
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
+};
+
+const AppRoutes = () => {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
+  const content = (
+    <Routes>
+      <Route path="/" element={<MultiStepForm />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+
+  return isHomePage ? (
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      {content}
+    </div>
+  ) : (
+    content
+  );
+};
+
+const App = () => (
+  <Router>
+    <AppRoutes />
+  </Router>
+);
+
+export default App;

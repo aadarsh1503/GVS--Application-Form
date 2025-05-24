@@ -362,140 +362,140 @@ const MultiStepForm = () => {
       }
   };
 
-  // const handleSubmit = async (e) => {
-  //     console.log('Submit button clicked, current step:', step);
-  //     e?.preventDefault();
-      
-  //     if (step !== 4) {
-  //         console.log('Attempted submission from step', step, 'but only step 4 is allowed');
-  //         return;
-  //     }
-      
-  //     const valid = validateStep(step);
-  //     setSubmittedStep(step);
-  
-  //     if (!valid) {
-  //         console.log('Submission validation failed');
-  //         toast.error("Please complete all fields!", {
-  //             position: "top-right",
-  //             autoClose: 5000,
-  //             hideProgressBar: false,
-  //             closeOnClick: true,
-  //             pauseOnHover: true,
-  //             draggable: true,
-  //             progress: undefined,
-  //             theme: "colored",
-  //             style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
-  //         });
-  //         return;
-  //     }
-  
-  //     try {
-  //         console.log('Preparing form data for submission');
-  //         const formDataToSend = new FormData();
-  //         for (const key in formData) {
-  //             formDataToSend.append(key, formData[key]);
-  //         }
-  //         if (file) formDataToSend.append('file', file);
-  
-  //         console.log('Sending form data to server');
-  //         const response = await fetch('http://localhost:5000/submit-form', {
-  //             method: 'POST',
-  //             body: formDataToSend,
-  //         });
-  
-  //         if (!response.ok) {
-  //             console.error('Submission failed with status:', response.status);
-  //             throw new Error('Failed to submit');
-  //         }
-          
-  //         console.log('Submission successful');
-  //         setIsSubmitted(true);
-  //         setShowSuccess(true);
-  //         toast.success("🎉 Application submitted successfully!", {
-  //             position: "top-right",
-  //             autoClose: 5000,
-  //             hideProgressBar: false,
-  //             closeOnClick: true,
-  //             pauseOnHover: true,
-  //             draggable: true,
-  //             progress: undefined,
-  //             theme: "colored",
-  //             style: { backgroundColor: '#D1FAE5', color: '#065F46' }
-  //         });
-  //     } catch (error) {
-  //         console.error('Submission error:', error);
-  //         toast.error("⚠️ Submission failed! Please try again.", {
-  //             position: "top-right",
-  //             autoClose: 5000,
-  //             hideProgressBar: false,
-  //             closeOnClick: true,
-  //             pauseOnHover: true,
-  //             draggable: true,
-  //             progress: undefined,
-  //             theme: "colored",
-  //             style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
-  //         });
-  //     }
-  // };
   const handleSubmit = async (e) => {
-    console.log('Submit button clicked, current step:', step);
-    e?.preventDefault();
+      console.log('Submit button clicked, current step:', step);
+      e?.preventDefault();
+      
+      if (step !== 4) {
+          console.log('Attempted submission from step', step, 'but only step 4 is allowed');
+          return;
+      }
+      
+      const valid = validateStep(step);
+      setSubmittedStep(step);
+  
+      if (!valid) {
+          console.log('Submission validation failed');
+          toast.error("Please complete all fields!", {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+              style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
+          });
+          return;
+      }
+  
+      try {
+          console.log('Preparing form data for submission');
+          const formDataToSend = new FormData();
+          for (const key in formData) {
+              formDataToSend.append(key, formData[key]);
+          }
+          if (file) formDataToSend.append('file', file);
+  
+          console.log('Sending form data to server');
+          const response = await fetch('http://localhost:5000/submit-form', {
+              method: 'POST',
+              body: formDataToSend,
+          });
+  
+          if (!response.ok) {
+              console.error('Submission failed with status:', response.status);
+              throw new Error('Failed to submit');
+          }
+          
+          console.log('Submission successful');
+          setIsSubmitted(true);
+          setShowSuccess(true);
+          toast.success("🎉 Application submitted successfully!", {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+              style: { backgroundColor: '#D1FAE5', color: '#065F46' }
+          });
+      } catch (error) {
+          console.error('Submission error:', error);
+          toast.error("⚠️ Submission failed! Please try again.", {
+              position: "top-right",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "colored",
+              style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
+          });
+      }
+  };
+//   const handleSubmit = async (e) => {
+//     console.log('Submit button clicked, current step:', step);
+//     e?.preventDefault();
     
-    if (step !== 4) {
-        console.log('Attempted submission from step', step, 'but only step 4 is allowed');
-        return;
-    }
+//     if (step !== 4) {
+//         console.log('Attempted submission from step', step, 'but only step 4 is allowed');
+//         return;
+//     }
     
-    const valid = validateStep(step);
-    setSubmittedStep(step);
+//     const valid = validateStep(step);
+//     setSubmittedStep(step);
 
-    if (!valid) {
-        console.log('Submission validation failed');
-        toast.error("Please complete all fields!", {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-            style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
-        });
-        return;
-    }
+//     if (!valid) {
+//         console.log('Submission validation failed');
+//         toast.error("Please complete all fields!", {
+//             position: "top-right",
+//             autoClose: 5000,
+//             hideProgressBar: false,
+//             closeOnClick: true,
+//             pauseOnHover: true,
+//             draggable: true,
+//             progress: undefined,
+//             theme: "colored",
+//             style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
+//         });
+//         return;
+//     }
 
-    try {
-        console.log('Skipping API call for testing purposes');
-        setIsSubmitted(true);
-        setShowSuccess(true);
-        toast.success("🎉 Application submitted successfully!", {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-            style: { backgroundColor: '#D1FAE5', color: '#065F46' }
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        toast.error("⚠️ Submission failed! Please try again.", {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "colored",
-            style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
-        });
-    }
-};
+//     try {
+//         console.log('Skipping API call for testing purposes');
+//         setIsSubmitted(true);
+//         setShowSuccess(true);
+//         toast.success("🎉 Application submitted successfully!", {
+//             position: "top-right",
+//             autoClose: 5000,
+//             hideProgressBar: false,
+//             closeOnClick: true,
+//             pauseOnHover: true,
+//             draggable: true,
+//             progress: undefined,
+//             theme: "colored",
+//             style: { backgroundColor: '#D1FAE5', color: '#065F46' }
+//         });
+//     } catch (error) {
+//         console.error('Error:', error);
+//         toast.error("⚠️ Submission failed! Please try again.", {
+//             position: "top-right",
+//             autoClose: 5000,
+//             hideProgressBar: false,
+//             closeOnClick: true,
+//             pauseOnHover: true,
+//             draggable: true,
+//             progress: undefined,
+//             theme: "colored",
+//             style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
+//         });
+//     }
+// };
   const renderStep = () => {
       console.log('Rendering step:', step);
       switch (step) {

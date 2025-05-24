@@ -21,14 +21,14 @@ const EducationWorkStep = ({ formData, errors, handleChange }) => {
             onChange={handleChange}
             className={`w-full px-4 py-2 border rounded-lg  focus:ring-primary focus:border-transparent ${errors.educationLevel ? 'border-red-500' : 'border-gray-300'}`}
           >
-            <option value="">Select education level</option>
-            <option value="SECONDARY_LEVEL">Secondary Level</option>
-            <option value="COLLEGE_GRADUATE">College Graduate</option>
-            <option value="POST_GRADUATE">Post Graduate</option>
-            <option value="VOCATIONAL">Vocational</option>
-            <option value="TECHNICAL">Technical</option>
-            <option value="ASSOCIATE_DIPLOMA">Associate Diploma</option>
-            <option value="OTHERS">Others</option>
+            <option value="Secondary Level">Secondary Level</option>
+<option value="College Graduate">College Graduate</option>
+<option value="Post Graduate">Post Graduate</option>
+<option value="Vocational">Vocational</option>
+<option value="Technical">Technical</option>
+<option value="Associate Diploma">Associate Diploma</option>
+<option value="Others">Others</option>
+
           </select>
           {errors.educationLevel && <p className="text-red-500 text-xs mt-1">{errors.educationLevel}</p>}
         </div>
@@ -69,13 +69,13 @@ const EducationWorkStep = ({ formData, errors, handleChange }) => {
             onChange={handleChange}
             className={`w-full px-4 py-2 border rounded-lg  focus:ring-primary focus:border-transparent ${errors.employmentDesired ? 'border-red-500' : 'border-gray-300'}`}
           >
-            <option value="">Select position</option>
-            <option value="LOGISTIC_OFFICER">Logistic Officer</option>
-            <option value="OFFICE_ADMIN">Office Admin</option>
-            <option value="ACCOUNTANT">Accountant</option>
-            <option value="BUSINESS_DEVELOPMENT_MANAGER">Business Development Manager</option>
-            <option value="FREIGHT_FORWARDER_AGENT">Freight Forwarder Agent</option>
-            <option value="OTHERS">Others</option>
+           <option value="">Select position</option>
+  <option value="Logistic Officer">Logistic Officer</option>
+  <option value="Office Admin">Office Admin</option>
+  <option value="Accountant">Accountant</option>
+  <option value="Business Development Manager">Business Development Manager</option>
+  <option value="Freight Forwarder Agent">Freight Forwarder Agent</option>
+  <option value="Others">Others</option>
           </select>
           {errors.employmentDesired && <p className="text-red-500 text-xs mt-1">{errors.employmentDesired}</p>}
         </div>
@@ -88,11 +88,11 @@ const EducationWorkStep = ({ formData, errors, handleChange }) => {
             onChange={handleChange}
             className={`w-full px-4 py-2 border rounded-lg  focus:ring-primary focus:border-transparent ${errors.availableStart ? 'border-red-500' : 'border-gray-300'}`}
           >
-            <option value="">Select option</option>
-            <option value="IMMEDIATELY">Immediately</option>
-            <option value="AFTER_ONE_WEEK">After one week</option>
-            <option value="AFTER_ONE_MONTH_NOTICE">After one month notice</option>
-            <option value="OTHERS">Others</option>
+ <option value="">Select option</option>
+  <option value="Immediately">Immediately</option>
+  <option value="After one week">After one week</option>
+  <option value="After one month notice">After one month notice</option>
+  <option value="Others">Others</option>
           </select>
           {errors.availableStart && <p className="text-red-500 text-xs mt-1">{errors.availableStart}</p>}
         </div>
