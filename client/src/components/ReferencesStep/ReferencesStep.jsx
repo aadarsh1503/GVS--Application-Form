@@ -101,7 +101,7 @@ const ReferencesStep = ({ formData, errors, handleChange }) => {
       className="space-y-6"
     >
       <h2 className="text-2xl font-bold text-dark mb-6">Character References</h2>
-      <p className="text-gray-600 mb-4">Please provide at least one complete reference.</p>
+      <p className="text-gray-600 mb-4"></p>
 
       {/* Render references */}
       {[...Array(referenceCount)].map((_, idx) => renderReference(idx))}

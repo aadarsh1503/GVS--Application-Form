@@ -110,16 +110,22 @@ const PersonalInfoStep = ({ formData, errors, handleChange }) => {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
-          <input
-            type="date"
-            name="dateOfBirth"
-            value={formData.dateOfBirth}
-            onChange={handleChange}
-            className={`w-full px-4 py-2 border rounded-lg focus:ring-primary focus:border-transparent ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'}`}
-          />
-          {errors.dateOfBirth && <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>}
-        </div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+  <input
+    type="date"
+    name="dateOfBirth"
+    value={formData.dateOfBirth}
+    onChange={handleChange}
+    max={new Date().toISOString().split("T")[0]} // Yeh line rokegi aaj ke baad ki date
+    className={`w-full px-4 py-2 border rounded-lg focus:ring-primary focus:border-transparent ${
+      errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'
+    }`}
+  />
+  {errors.dateOfBirth && (
+    <p className="text-red-500 text-xs mt-1">{errors.dateOfBirth}</p>
+  )}
+</div>
+
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>

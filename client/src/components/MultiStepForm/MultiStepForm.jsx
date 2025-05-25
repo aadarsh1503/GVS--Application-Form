@@ -260,12 +260,12 @@ const MultiStepForm = () => {
       else if (!/^\+?\d{10,15}$/.test(formData.whatsapp)) newErrors.whatsapp = 'Invalid WhatsApp number';
   
       if (!formData.currentAddress) newErrors.currentAddress = 'Current address is required';
-      if (!formData.cprNationalId) newErrors.cprNationalId = 'CPR/National ID is required';
+      // if (!formData.cprNationalId) newErrors.cprNationalId = 'CPR/National ID is required';
   
-      if (!formData.passportId) newErrors.passportId = 'Passport ID is required';
-      else if (!/^[A-Z0-9]{6,9}$/i.test(formData.passportId)) newErrors.passportId = 'Invalid Passport ID';
+      // if (!formData.passportId) newErrors.passportId = 'Passport ID is required';
+      // else if (!/^[A-Z0-9]{6,9}$/i.test(formData.passportId)) newErrors.passportId = 'Invalid Passport ID';
   
-      if (!formData.passportValidity) newErrors.passportValidity = 'Passport validity date is required';
+      // if (!formData.passportValidity) newErrors.passportValidity = 'Passport validity date is required';
     }
   
     if (step === 2) {
@@ -284,21 +284,30 @@ const MultiStepForm = () => {
     if (step === 3) {
       console.log('Validating references fields');
       for (let i = 1; i <= 3; i++) {
-        if (formData[`ref${i}Name`] || formData[`ref${i}Contact`] || formData[`ref${i}Email`]) {
-          if (!formData[`ref${i}Name`]) newErrors[`ref${i}Name`] = 'Reference name is required';
-          if (!formData[`ref${i}Contact`]) {
+        const name = formData[`ref${i}Name`];
+        const contact = formData[`ref${i}Contact`];
+        const email = formData[`ref${i}Email`];
+    
+        const anyFieldFilled = name || contact || email;
+    
+        if (anyFieldFilled) {
+          if (!name) newErrors[`ref${i}Name`] = 'Reference name is required';
+    
+          if (!contact) {
             newErrors[`ref${i}Contact`] = 'Reference contact is required';
-          } else if (!/^\+?\d{10,15}$/.test(formData[`ref${i}Contact`])) {
+          } else if (!/^\+?\d{10,15}$/.test(contact)) {
             newErrors[`ref${i}Contact`] = 'Invalid contact number';
           }
-          if (!formData[`ref${i}Email`]) {
+    
+          if (!email) {
             newErrors[`ref${i}Email`] = 'Reference email is required';
-          } else if (!/^\S+@\S+\.\S+$/.test(formData[`ref${i}Email`])) {
+          } else if (!/^\S+@\S+\.\S+$/.test(email)) {
             newErrors[`ref${i}Email`] = 'Invalid email format';
           }
         }
       }
     }
+    
     
     if (step === 4) {
       console.log('Validating additional info fields');
@@ -311,8 +320,8 @@ const MultiStepForm = () => {
         newErrors.expectedSalary = 'Expected salary must be a number';
       }
     
-      if (!formData.visaValidity) newErrors.visaValidity = 'Visa validity is required';
-      if (!formData.visaStatus) newErrors.visaStatus = 'Visa status is required';
+      // if (!formData.visaValidity) newErrors.visaValidity = 'Visa validity is required';
+      // if (!formData.visaStatus) newErrors.visaStatus = 'Visa status is required';
       if (!file) newErrors.file = 'File upload is required';
       if (fileError) newErrors.file = fileError; // e.g., file type/size issues
     }

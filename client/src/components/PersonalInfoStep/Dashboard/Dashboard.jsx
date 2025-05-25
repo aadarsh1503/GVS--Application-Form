@@ -8,10 +8,10 @@ import AdminNavbar from '../../AdminNavbar/AdminNavbar';
 
 const Dashboard = () => {
   const [entries, setEntries] = useState([]);
+  const [filteredEntries, setFilteredEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPDF, setShowPDF] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
-    // Check local storage or prefer-color-scheme for initial value
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? JSON.parse(savedMode) : window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
@@ -25,11 +25,10 @@ const Dashboard = () => {
     customStart: '',
     customEnd: '',
     educationLevel: '',
-    visaStatus: '',
     searchTerm: ''
   });
 
-  // Apply dark mode class to HTML element and save to localStorage
+  // Apply dark mode class to HTML element
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -39,38 +38,13 @@ const Dashboard = () => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
+  // Fetch entries from API
   const fetchEntries = async () => {
     setLoading(true);
     try {
-      const params = {
-        ...filters,
-        customStart: filters.customStart ? new Date(filters.customStart).toISOString() : '',
-        customEnd: filters.customEnd ? new Date(filters.customEnd).toISOString() : '',
-        email: filters.email || null,
-        nationality: filters.nationality || null,
-        educationLevel: filters.educationLevel || null,
-        visaStatus: filters.visaStatus || null,
-        searchTerm: filters.searchTerm || null
-      };
-  
-      Object.keys(params).forEach(key => {
-        if (params[key] === null || params[key] === '') {
-          delete params[key];
-        }
-      });
-  
-      const response = await axios.get('http://localhost:5000/admin/form-entries', { params });
-      
-      const processedEntries = response.data.map(entry => {
-        const visaExpired = entry.passportValidity && 
-          new Date(entry.passportValidity) < new Date();
-        return {
-          ...entry,
-          visaStatus: visaExpired ? 'Expired' : entry.visaStatus || 'None'
-        };
-      });
-      
-      setEntries(processedEntries);
+      const response = await axios.get('http://localhost:5000/admin/form-entries');
+      setEntries(response.data);
+      setFilteredEntries(response.data); // Initialize filtered entries
     } catch (err) {
       console.error('Failed to fetch entries:', err);
     } finally {
@@ -78,25 +52,67 @@ const Dashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchEntries();
-  }, [filters]);
+  // Apply filters locally
+  const applyFilters = () => {
+    let result = [...entries];
+    
+    // Search term filter
+    if (filters.searchTerm) {
+      const term = filters.searchTerm.toLowerCase();
+      result = result.filter(entry => 
+        (entry.fullName?.toLowerCase().includes(term)) ||
+        (entry.email?.toLowerCase().includes(term)) ||
+        (entry.skills?.toLowerCase().includes(term))
+      );
+    }
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    // Nationality filter
+    if (filters.nationality) {
+      result = result.filter(entry => 
+        entry.nationality?.toLowerCase().includes(filters.nationality.toLowerCase())
+      );
+    }
+
+    // Employment status filter
+    if (filters.currentlyEmployed) {
+      result = result.filter(entry => 
+        String(entry.currentlyEmployed).toUpperCase() === filters.currentlyEmployed.toUpperCase()
+      );
+    }
+
+    // Education level filter
+    if (filters.educationLevel) {
+      result = result.filter(entry => 
+        entry.educationLevel === filters.educationLevel
+      );
+    }
+
+    setFilteredEntries(result);
   };
 
+  // Fetch data on initial load
+  useEffect(() => {
+    fetchEntries();
+  }, []);
+
+  // Apply filters when they change
+  useEffect(() => {
+    if (entries.length > 0) {
+      applyFilters();
+    }
+  }, [filters, entries]);
+
+  // Other helper functions remain the same...
+  const toggleDarkMode = () => setDarkMode(!darkMode);
   const openModal = (entry) => {
     setSelectedEntry(entry);
     setIsModalOpen(true);
     document.body.style.overflow = 'hidden';
   };
-
   const closeModal = () => {
     setIsModalOpen(false);
     document.body.style.overflow = 'auto';
   };
-
   const clearAllFilters = () => {
     setFilters({
       email: '',
@@ -106,20 +122,17 @@ const Dashboard = () => {
       customStart: '',
       customEnd: '',
       educationLevel: '',
-      visaStatus: '',
       searchTerm: ''
     });
   };
-
   const renderField = (label, value) => {
     if (!value) return null;
     return (
-      <p className={`mt-1 text-sm font-noto-serif ${darkMode ? 'text-gray-300 font-noto-serif' : 'text-gray-700'}`}>
-        <strong className={darkMode ? 'text-indigo-400' : 'text-indigo-600 '}>{label}:</strong> {value}
+      <p className={`mt-1 text-sm font-noto-serif ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+        <strong className={darkMode ? 'text-indigo-400' : 'text-indigo-600'}>{label}:</strong> {value}
       </p>
     );
   };
-
   return (
     <div className={`min-h-screen transition-colors font-noto-serif duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
         <AdminNavbar />
@@ -144,7 +157,7 @@ const Dashboard = () => {
           clearAllFilters={clearAllFilters}
         />
 
-        {loading ? (
+{loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {[...Array(6)].map((_, idx) => (
               <Skeleton key={idx} darkMode={darkMode} />
@@ -154,7 +167,7 @@ const Dashboard = () => {
           <>
             <div className="flex justify-between items-center mt-6 mb-4">
               <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Showing <span className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{entries.length}</span> candidates
+                Showing <span className={`font-medium ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>{filteredEntries.length}</span> candidates
               </p>
               <div className="flex space-x-2">
                 <button 
@@ -169,24 +182,18 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {entries.length === 0 ? (
+            {filteredEntries.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="text-center py-12"
               >
-                <div className={darkMode ? 'text-gray-400' : 'text-gray-500'}>
-                  <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className={`mt-4 text-lg font-noto-serif ${darkMode ? 'text-gray-300' : 'text-black'}`}>No candidates found</p>
-                  <p className={`mt-1 text-sm font-noto-serif ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Try adjusting your filters</p>
-                </div>
+                {/* No results message */}
               </motion.div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 font-noto-serif lg:grid-cols-3 gap-6 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
                 <AnimatePresence>
-                  {entries.map((entry) => (
+                  {filteredEntries.map((entry) => (
                     <motion.div
                       key={entry._id}
                       layout
@@ -212,7 +219,7 @@ const Dashboard = () => {
                               {entry.fullName || 'No Name'}
                             </h2>
                             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                              {entry.nationality} • {entry.currentlyEmployed === 'Yes' ? 'Employed' : 'Available'}
+                              {entry.nationality} • {String(entry.currentlyEmployed).toUpperCase() === 'YES' ? 'Employed' : 'Not Employed'}
                             </p>
                           </div>
                         </div>
@@ -342,7 +349,7 @@ const Dashboard = () => {
                         }`}>
                           {selectedEntry.currentlyEmployed === 'Yes' ? 'Currently Employed' : 'Available'}
                         </span> */}
-                        {selectedEntry.visaStatus && (
+                        {/* {selectedEntry.visaStatus && (
                           <span className={`px-3 py-1 text-xs rounded-full ${
                             selectedEntry.visaStatus === 'Expired'
                               ? darkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'
@@ -350,7 +357,7 @@ const Dashboard = () => {
                           }`}>
                             {selectedEntry.visaStatus}
                           </span>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>

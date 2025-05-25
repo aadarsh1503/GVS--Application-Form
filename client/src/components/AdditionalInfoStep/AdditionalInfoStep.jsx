@@ -64,17 +64,17 @@ const AdditionalInfoStep = ({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Expected Salary</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Expectations</label>
           <input
   type="number"
   name="expectedSalary"
   value={formData.expectedSalary}
   onChange={handleChange}
-  min="0"  // ye negative number entry rokega
+  min="0"
   className={`w-full px-4 py-2 border rounded-lg  focus:ring-primary focus:border-transparent ${
     isSubmitted && errors.expectedSalary ? 'border-red-500' : 'border-gray-300'
   }`}
-  placeholder="Your expected salary"
+  placeholder="Your Expectations"
 />
           {isSubmitted && errors.expectedSalary && (
             <p className="text-red-500 text-sm mt-1">{errors.expectedSalary}</p>

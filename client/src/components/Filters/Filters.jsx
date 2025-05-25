@@ -100,20 +100,20 @@ const Filters = ({ filters, setFilters, darkMode, clearAllFilters }) => {
         </div>
         
         <div>
-          <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Employment</label>
-          <select
-            value={filters.currentlyEmployed}
-            onChange={(e) => setFilters({ ...filters, currentlyEmployed: e.target.value })}
-            className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
-              darkMode ? 'bg-gray-700 border-gray-600 text-white' 
-              : 'bg-white border-gray-300 text-gray-800'
-            }`}
-          >
-            <option value="" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Any status</option>
-            <option value="Yes" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Employed</option>
-            <option value="No" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Not employed</option>
-          </select>
-        </div>
+  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Employment</label>
+  <select
+    value={filters.currentlyEmployed}
+    onChange={(e) => setFilters({ ...filters, currentlyEmployed: e.target.value })}
+    className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+      darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+      : 'bg-white border-gray-300 text-gray-800'
+    }`}
+  >
+    <option value="">Any status</option>
+    <option value="YES">Employed</option>
+    <option value="NO">Not Employed</option>
+  </select>
+</div>
         
         <div>
           <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Date Range</label>
@@ -180,7 +180,7 @@ const Filters = ({ filters, setFilters, darkMode, clearAllFilters }) => {
             </select>
           </div>
           
-          <div>
+          {/* <div>
             <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Visa Status</label>
             <select
               value={filters.visaStatus}
@@ -195,7 +195,7 @@ const Filters = ({ filters, setFilters, darkMode, clearAllFilters }) => {
               <option value="Expired" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Expired</option>
               <option value="None" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>None</option>
             </select>
-          </div>
+          </div> */}
           
           {filters.dateRange === 'custom' && (
             <div className="grid grid-cols-2 gap-2">

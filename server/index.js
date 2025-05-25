@@ -12,10 +12,7 @@ const PORT = 5000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-// Add this near your other require statements at the top
 const fs = require('fs');
-
-// ... (your other middleware and routes)
 
 // File download/view route
 app.get('/uploads/:filename', (req, res) => {
@@ -23,12 +20,10 @@ app.get('/uploads/:filename', (req, res) => {
     const filename = path.basename(req.params.filename);
     const filePath = path.join(__dirname, 'uploads', filename);
     
-    // Check if file exists
     if (!fs.existsSync(filePath)) {
       return res.status(404).send('File not found');
     }
 
-    // Force download if ?download=true parameter exists
     if (req.query.download === 'true') {
       res.download(filePath, filename, (err) => {
         if (err) {
@@ -37,7 +32,6 @@ app.get('/uploads/:filename', (req, res) => {
         }
       });
     } else {
-      // Otherwise serve normally (for iframe viewing)
       res.sendFile(filePath, (err) => {
         if (err) {
           console.error('File send error:', err);
@@ -66,6 +60,7 @@ db.connect((err) => {
   }
   console.log('Connected to MySQL');
 });
+
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
@@ -114,7 +109,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-
 app.get('/admin/form-entries', (req, res) => {
   let baseQuery = 'SELECT * FROM form_entries';
   const conditions = [];
@@ -132,17 +126,13 @@ app.get('/admin/form-entries', (req, res) => {
     values.push(`%${req.query.email}%`);
   }
 
-  // Nationality filter (case-insensitive partial match)
+  // Nationality filter
   if (req.query.nationality) {
     conditions.push('LOWER(nationality) LIKE LOWER(?)');
     values.push(`%${req.query.nationality}%`);
   }
 
-  // Employment status
-  if (req.query.currentlyEmployed) {
-    conditions.push('currentlyEmployed = ?');
-    values.push(req.query.currentlyEmployed);
-  }
+  // 🛑 currentlyEmployed filtering removed
 
   // Education level
   if (req.query.educationLevel) {
@@ -161,7 +151,7 @@ app.get('/admin/form-entries', (req, res) => {
     }
   }
 
-  // Date range filtering
+  // Date range filtering (unchanged)
   if (req.query.dateRange && req.query.dateRange !== 'all') {
     switch (req.query.dateRange) {
       case 'today':
@@ -192,7 +182,6 @@ app.get('/admin/form-entries', (req, res) => {
     }
   }
 
-  // Add sorting (newest first by default)
   baseQuery += conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
   baseQuery += ' ORDER BY submittedAt DESC';
 
@@ -201,17 +190,13 @@ app.get('/admin/form-entries', (req, res) => {
       console.error('Error fetching form entries:', err);
       return res.status(500).send('Error retrieving data');
     }
-    
-    // Process results to add calculated visa status
-    const processedResults = results.map(entry => {
-      const visaExpired = entry.passportValidity && 
-        new Date(entry.passportValidity) < new Date();
-      return {
-        ...entry,
-        visaStatus: visaExpired ? 'Expired' : (entry.visaStatus || 'None')
-      };
-    });
-    
+
+    const processedResults = results.map(entry => ({
+      ...entry,
+      currentlyEmployed: entry.currentlyEmployed,
+      visaStatus: entry.visaStatus || null
+    }));
+
     res.status(200).json(processedResults);
   });
 });
@@ -269,6 +254,7 @@ app.post('/submit-form', upload.single('file'), (req, res) => {
     res.status(200).send('Form and file submitted successfully!');
   });
 });
+
 app.get('/', (req, res) => {
   res.send('Server is working!');
 });
