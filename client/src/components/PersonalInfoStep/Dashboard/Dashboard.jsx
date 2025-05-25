@@ -86,6 +86,38 @@ const Dashboard = () => {
         entry.educationLevel === filters.educationLevel
       );
     }
+      if (filters.dateRange && filters.dateRange !== 'all') {
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (filters.dateRange) {
+      case 'today':
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case '24h':
+        startDate.setHours(now.getHours() - 24);
+        break;
+      case '7d':
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case '30d':
+        startDate.setDate(now.getDate() - 30);
+        break;
+      case '1y':
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      case 'custom':
+        if (filters.customStart) {
+          startDate = new Date(filters.customStart);
+        }
+        break;
+    }
+
+    result = result.filter(entry => {
+      const entryDate = new Date(entry.submittedAt);
+      return entryDate >= startDate && entryDate <= now;
+    });
+  }
 
     setFilteredEntries(result);
   };

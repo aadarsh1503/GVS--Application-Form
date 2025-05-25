@@ -115,25 +115,31 @@ const Filters = ({ filters, setFilters, darkMode, clearAllFilters }) => {
   </select>
 </div>
         
-        <div>
-          <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Date Range</label>
-          <select
-            value={filters.dateRange}
-            onChange={(e) => handleDateRangeChange(e.target.value)}
-            className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
-              darkMode ? 'bg-gray-700 border-gray-600 text-white' 
-              : 'bg-white border-gray-300 text-gray-800'
-            }`}
-          >
-            <option value="all" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>All time</option>
-            <option value="today" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Today</option>
-            <option value="24h" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Last 24 hours</option>
-            <option value="7d" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Last 7 days</option>
-            <option value="30d" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Last 30 days</option>
-            <option value="1y" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Last year</option>
-            <option value="custom" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Custom range</option>
-          </select>
-        </div>
+<div>
+  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Date Range</label>
+  <select
+    value={filters.dateRange}
+    onChange={(e) => {
+      setFilters({
+        ...filters,
+        dateRange: e.target.value,
+        customStart: '',
+        customEnd: ''
+      });
+    }}
+    className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+      darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+      : 'bg-white border-gray-300 text-gray-800'
+    }`}
+  >
+    <option value="all">All time</option>
+    <option value="today">Today</option>
+    <option value="24h">Last 24 hours</option>
+    <option value="7d">Last 7 days</option>
+    <option value="30d">Last 30 days</option>
+    <option value="1y">Last year</option>
+  </select>
+</div>
       </div>
 
       <button
