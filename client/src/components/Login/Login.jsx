@@ -11,9 +11,6 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log('Login attempt started...');
-    console.log('Email:', email);
-    console.log('Password:', password); // For security, remove this in production
 
     try {
       const res = await fetch('http://localhost:5000/admin/login', {
@@ -23,22 +20,22 @@ const Login = () => {
       });
 
       const data = await res.json();
-      console.log('Server response:', data);
+      
 
       if (res.ok) {
         localStorage.setItem('adminToken', data.token);
-        console.log('Login successful, token stored in sessionStorage');
+        
         navigate('/dashboard');
       } else {
-        console.log('Login failed:', data.message);
+        
         alert(data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('An error occurred during login:', error);
+      
       alert('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
-      console.log('Login attempt ended.');
+      
     }
   };
 

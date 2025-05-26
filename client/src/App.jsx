@@ -5,12 +5,9 @@ import MultiStepForm from './components/MultiStepForm/MultiStepForm';
 import Dashboard from './components/PersonalInfoStep/Dashboard/Dashboard';
 import Login from './components/Login/Login';
 import Signup from './components/Signup/Signup';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 
-const ProtectedRoute = ({ children }) => {
-  const isAuthenticated = localStorage.getItem('adminToken');
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-};
 
 const AppRoutes = () => {
   const location = useLocation();

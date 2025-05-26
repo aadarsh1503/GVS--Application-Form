@@ -91,7 +91,7 @@ app.post('/admin/login', (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'your_secret', { expiresIn: '2h' });
+    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'your_secret', { expiresIn: '1h' });
     res.json({ token });
   });
 });
