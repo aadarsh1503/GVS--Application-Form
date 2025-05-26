@@ -42,7 +42,7 @@ const Dashboard = () => {
   const fetchEntries = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/admin/form-entries');
+      const response = await axios.get('https://gvs-application-form-1.onrender.com/admin/form-entries');
       setEntries(response.data);
       setFilteredEntries(response.data); // Initialize filtered entries
     } catch (err) {
