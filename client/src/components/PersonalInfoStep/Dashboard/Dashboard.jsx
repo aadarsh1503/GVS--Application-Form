@@ -292,7 +292,7 @@ const Dashboard = () => {
                           <div className="flex items-center space-x-2">
                             {entry.resumeFile && (
                               <a
-                                href={`http://localhost:5000/uploads/${entry.resumeFile}`}
+                                href={`https://gvs-application-form-1.onrender.com/uploads/${entry.resumeFile}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`text-xs flex items-center ${
@@ -551,7 +551,7 @@ const Dashboard = () => {
         onClick={() => {
           // Create a hidden anchor tag to trigger download
           const link = document.createElement('a');
-          link.href = `http://localhost:5000/uploads/${selectedEntry.resumeFile}?download=true`;
+          link.href = `https://gvs-application-form-1.onrender.com/uploads/${selectedEntry.resumeFile}?download=true`;
           link.download = selectedEntry.resumeFile || 'resume.pdf';
           document.body.appendChild(link);
           link.click();
@@ -565,7 +565,7 @@ const Dashboard = () => {
 
       {/* PDF Viewer */}
       <iframe
-        src={`http://localhost:5000/uploads/${selectedEntry.resumeFile}`}
+        src={`https://gvs-application-form-1.onrender.com/uploads/${selectedEntry.resumeFile}`}
         title="Resume Viewer"
         className="w-full h-full border-none"
       ></iframe>
