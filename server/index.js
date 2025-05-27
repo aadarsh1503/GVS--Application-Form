@@ -1,14 +1,14 @@
 const express = require('express');
-const mysql = require('mysql2/promise'); // Using promise-based API
+const mysql = require('mysql2/promise');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 const cloudinary = require('cloudinary').v2;
+require('dotenv').config();
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -17,21 +17,21 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
+// Cloudinary configuration
 cloudinary.config({ 
   cloud_name: 'ds1dt3qub', 
   api_key: '812267761956811', 
   api_secret: 'mSDcT7ojdMLhFUPrbPHtOeL4hqk'
 });
 
-// Remove the multer disk storage configuration and replace with memory storage
-const storage = multer.memoryStorage(); // Store file in memory for Cloudinary upload
+// Multer memory storage for file uploads
+const storage = multer.memoryStorage();
 const upload = multer({ 
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
-// Create MySQL connection pool
+// MySQL connection pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -55,26 +55,30 @@ pool.getConnection()
     process.exit(1);
   });
 
-// File download/view route
-// app.get('/uploads/:filename', async (req, res) => {
-//   try {
-//     const filename = path.basename(req.params.filename);
-//     const filePath = path.join(__dirname, 'uploads', filename);
+// File download endpoint
+app.get('/download-file', async (req, res) => {
+  try {
+    const fileUrl = req.query.url;
+    if (!fileUrl) return res.status(400).send('File URL required');
     
-//     if (!fs.existsSync(filePath)) {
-//       return res.status(404).send('File not found');
-//     }
-
-//     if (req.query.download === 'true') {
-//       res.download(filePath, filename);
-//     } else {
-//       res.sendFile(filePath);
-//     }
-//   } catch (error) {
-//     console.error('Route error:', error);
-//     res.status(500).send('Server error');
-//   }
-// });
+    // Extract file extension from URL
+    const fileExt = path.extname(fileUrl).toLowerCase();
+    const isImage = ['.jpg', '.jpeg', '.png', '.gif'].includes(fileExt);
+    
+    if (isImage) {
+      // For images, redirect to the URL
+      return res.redirect(fileUrl);
+    } else {
+      // For documents, force download
+      const filename = path.basename(fileUrl).split('?')[0];
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      return res.redirect(fileUrl);
+    }
+  } catch (error) {
+    console.error('Download error:', error);
+    res.status(500).send('Error downloading file');
+  }
+});
 
 // Admin authentication routes
 app.post('/admin/signup', async (req, res) => {
@@ -212,7 +216,6 @@ app.get('/admin/form-entries', async (req, res) => {
 
 // Form submission with transaction support
 app.post('/submit-form', upload.single('file'), async (req, res) => {
-  console.log('--- Form submission received ---');
   const data = req.body;
   const file = req.file;
 
@@ -221,22 +224,24 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
     await connection.beginTransaction();
 
     try {
-      console.log('Received form data:', data);
       let fileUrl = null;
+      let fileType = null;
       
       if (file) {
-        console.log('Uploading file to Cloudinary...');
-        // Convert buffer to a data URI for Cloudinary
+        // Determine resource type based on file mimetype
+        const resourceType = file.mimetype.startsWith('image/') ? 'image' : 'raw';
+        fileType = file.mimetype;
+        
+        // Convert buffer to data URI for Cloudinary
         const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
         
-        // Upload to Cloudinary
+        // Upload to Cloudinary with correct resource type
         const result = await cloudinary.uploader.upload(dataUri, {
-          resource_type: "auto",
-          folder: "job_applications" // Optional folder in Cloudinary
+          resource_type: resourceType,
+          folder: "job_applications"
         });
         
         fileUrl = result.secure_url;
-        console.log('File uploaded to Cloudinary:', fileUrl);
       }
 
       const sql = `
@@ -245,8 +250,8 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
           cprNationalId, passportId, passportValidity, educationLevel, courseDegree, currentlyEmployed,
           employmentDesired, availableStart, shiftAvailable, canTravel, drivingLicense, skills,
           ref1Name, ref1Contact, ref1Email, ref2Name, ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email,
-          visaStatus, visaValidity, expectedSalary, clientLeadsStrategy, resumeFile
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          visaStatus, visaValidity, expectedSalary, clientLeadsStrategy, resumeFile, fileType
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const values = [
@@ -256,17 +261,12 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         data.ref1Name, data.ref1Contact, data.ref1Email, data.ref2Name, data.ref2Contact, data.ref2Email,
         data.ref3Name, data.ref3Contact, data.ref3Email,
         data.visaStatus, data.visaValidity, data.expectedSalary, data.clientLeadsStrategy,
-        fileUrl // Store the Cloudinary URL instead of local filename
+        fileUrl, fileType
       ];
 
-      console.log('Prepared SQL query:', sql);
-      console.log('Values to insert:', values);
-
-      const [result] = await connection.query(sql, values);
-      console.log('Data inserted successfully with ID:', result.insertId);
-      
+      await connection.query(sql, values);
       await connection.commit();
-      res.status(200).send('Form and file submitted successfully!');
+      res.status(200).send('Form submitted successfully!');
     } catch (err) {
       await connection.rollback();
       console.error('Error inserting data:', err);
