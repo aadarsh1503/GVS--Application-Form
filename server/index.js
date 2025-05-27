@@ -56,24 +56,58 @@ pool.getConnection()
   });
 
 // File download endpoint
+// Update your download-file endpoint
 app.get('/download-file', async (req, res) => {
   try {
-    const fileUrl = req.query.url;
-    if (!fileUrl) return res.status(400).send('File URL required');
+    const { url, filename } = req.query;
+    if (!url) return res.status(400).send('File URL required');
     
-    // Extract file extension from URL
-    const fileExt = path.extname(fileUrl).toLowerCase();
-    const isImage = ['.jpg', '.jpeg', '.png', '.gif'].includes(fileExt);
+    // Determine content type based on file extension or URL
+    let contentType = 'application/octet-stream';
+    let extension = '';
     
-    if (isImage) {
-      // For images, redirect to the URL
-      return res.redirect(fileUrl);
+    if (filename) {
+      extension = path.extname(filename).toLowerCase();
     } else {
-      // For documents, force download
-      const filename = path.basename(fileUrl).split('?')[0];
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      return res.redirect(fileUrl);
+      // Try to extract from URL if filename not provided
+      const urlPath = new URL(url).pathname;
+      extension = path.extname(urlPath).toLowerCase();
     }
+
+    // Set appropriate content type based on extension
+    switch(extension) {
+      case '.pdf':
+        contentType = 'application/pdf';
+        break;
+      case '.doc':
+        contentType = 'application/msword';
+        break;
+      case '.docx':
+        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        break;
+      case '.jpg':
+      case '.jpeg':
+        contentType = 'image/jpeg';
+        break;
+      case '.png':
+        contentType = 'image/png';
+        break;
+      // Add more as needed
+    }
+
+    // Set headers
+    res.setHeader('Content-Type', contentType);
+    
+    // If filename is provided, use it for download
+    if (filename) {
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    } else {
+      // Fallback to generic filename if no filename provided
+      res.setHeader('Content-Disposition', `attachment; filename="file${extension}"`);
+    }
+
+    // Redirect to the actual file URL
+    return res.redirect(url);
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).send('Error downloading file');
@@ -130,7 +164,7 @@ app.post('/admin/login', async (req, res) => {
 // Form entries route with better error handling
 app.get('/admin/form-entries', async (req, res) => {
   try {
-    let baseQuery = 'SELECT * FROM form_entries';
+    let baseQuery = 'SELECT *, originalFilename FROM form_entries';
     const conditions = [];
     const values = [];
 
@@ -226,8 +260,13 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
     try {
       let fileUrl = null;
       let fileType = null;
+      let originalFilename = null;
       
       if (file) {
+        // Get original filename and extension
+        originalFilename = file.originalname;
+        const fileExt = path.extname(originalFilename);
+        
         // Determine resource type based on file mimetype
         const resourceType = file.mimetype.startsWith('image/') ? 'image' : 'raw';
         fileType = file.mimetype;
@@ -235,10 +274,13 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         // Convert buffer to data URI for Cloudinary
         const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
         
-        // Upload to Cloudinary with correct resource type
+        // Upload to Cloudinary with correct resource type and original filename
         const result = await cloudinary.uploader.upload(dataUri, {
           resource_type: resourceType,
-          folder: "job_applications"
+          folder: "job_applications",
+          public_id: path.basename(originalFilename, fileExt), // Remove extension for public_id
+          use_filename: true,
+          unique_filename: false
         });
         
         fileUrl = result.secure_url;
@@ -250,8 +292,8 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
           cprNationalId, passportId, passportValidity, educationLevel, courseDegree, currentlyEmployed,
           employmentDesired, availableStart, shiftAvailable, canTravel, drivingLicense, skills,
           ref1Name, ref1Contact, ref1Email, ref2Name, ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email,
-          visaStatus, visaValidity, expectedSalary, clientLeadsStrategy, resumeFile, fileType
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          visaStatus, visaValidity, expectedSalary, clientLeadsStrategy, resumeFile, fileType, originalFilename
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const values = [
@@ -261,7 +303,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         data.ref1Name, data.ref1Contact, data.ref1Email, data.ref2Name, data.ref2Contact, data.ref2Email,
         data.ref3Name, data.ref3Contact, data.ref3Email,
         data.visaStatus, data.visaValidity, data.expectedSalary, data.clientLeadsStrategy,
-        fileUrl, fileType
+        fileUrl, fileType, originalFilename
       ];
 
       await connection.query(sql, values);
