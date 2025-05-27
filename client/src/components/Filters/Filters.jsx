@@ -186,22 +186,25 @@ const Filters = ({ filters, setFilters, darkMode, clearAllFilters }) => {
             </select>
           </div>
           
-          {/* <div>
-            <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Visa Status</label>
-            <select
-              value={filters.visaStatus}
-              onChange={(e) => setFilters({ ...filters, visaStatus: e.target.value })}
-              className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
-                darkMode ? 'bg-gray-700 border-gray-600 text-white' 
-                : 'bg-white border-gray-300 text-gray-800'
-              }`}
-            >
-              <option value="" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Any status</option>
-              <option value="Valid" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Valid</option>
-              <option value="Expired" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>Expired</option>
-              <option value="None" className={` ${darkMode ? 'text-white' : 'text-gray-800'}`}>None</option>
-            </select>
-          </div> */}
+          <div>
+  <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Desired Position</label>
+  <select
+    value={filters.employmentDesired}
+    onChange={(e) => setFilters({ ...filters, employmentDesired: e.target.value })}
+    className={`w-full px-3 py-2 rounded-lg border text-gray-800 ${
+      darkMode ? 'bg-gray-700 border-gray-600 text-white' 
+      : 'bg-white border-gray-300 text-gray-800'
+    }`}
+  >
+    <option value="">Any position</option>
+    <option value="Logistic Officer">Logistic Officer</option>
+    <option value="Office Admin">Office Admin</option>
+    <option value="Accountant">Accountant</option>
+    <option value="Business Development Manager">Business Development Manager</option>
+    <option value="Freight Forwarder Agent">Freight Forwarder Agent</option>
+    <option value="Others">Others</option>
+  </select>
+</div>
           
           {filters.dateRange === 'custom' && (
             <div className="grid grid-cols-2 gap-2">

@@ -25,10 +25,10 @@ const Dashboard = () => {
     customStart: '',
     customEnd: '',
     educationLevel: '',
-    searchTerm: ''
+    searchTerm: '',
+    employmentDesired: '' // Add this line
   });
 
-  // Apply dark mode class to HTML element
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -38,13 +38,12 @@ const Dashboard = () => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
 
-  // Fetch entries from API
   const fetchEntries = async () => {
     setLoading(true);
     try {
       const response = await axios.get('https://gvs-application-form-1.onrender.com/admin/form-entries');
       setEntries(response.data);
-      setFilteredEntries(response.data); // Initialize filtered entries
+      setFilteredEntries(response.data);
     } catch (err) {
       console.error('Failed to fetch entries:', err);
     } finally {
@@ -52,11 +51,9 @@ const Dashboard = () => {
     }
   };
 
-  // Apply filters locally
   const applyFilters = () => {
     let result = [...entries];
     
-    // Search term filter
     if (filters.searchTerm) {
       const term = filters.searchTerm.toLowerCase();
       result = result.filter(entry => 
@@ -66,75 +63,76 @@ const Dashboard = () => {
       );
     }
 
-    // Nationality filter
     if (filters.nationality) {
       result = result.filter(entry => 
         entry.nationality?.toLowerCase().includes(filters.nationality.toLowerCase())
       );
     }
 
-    // Employment status filter
+    if (filters.employmentDesired) {
+      result = result.filter(entry => 
+        entry.employmentDesired === filters.employmentDesired
+      );
+    }
+    
     if (filters.currentlyEmployed) {
       result = result.filter(entry => 
         String(entry.currentlyEmployed).toUpperCase() === filters.currentlyEmployed.toUpperCase()
       );
     }
 
-    // Education level filter
     if (filters.educationLevel) {
       result = result.filter(entry => 
         entry.educationLevel === filters.educationLevel
       );
     }
-      if (filters.dateRange && filters.dateRange !== 'all') {
-    const now = new Date();
-    let startDate = new Date();
-    
-    switch (filters.dateRange) {
-      case 'today':
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case '24h':
-        startDate.setHours(now.getHours() - 24);
-        break;
-      case '7d':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case '30d':
-        startDate.setDate(now.getDate() - 30);
-        break;
-      case '1y':
-        startDate.setFullYear(now.getFullYear() - 1);
-        break;
-      case 'custom':
-        if (filters.customStart) {
-          startDate = new Date(filters.customStart);
-        }
-        break;
-    }
 
-    result = result.filter(entry => {
-      const entryDate = new Date(entry.submittedAt);
-      return entryDate >= startDate && entryDate <= now;
-    });
-  }
+    if (filters.dateRange && filters.dateRange !== 'all') {
+      const now = new Date();
+      let startDate = new Date();
+      
+      switch (filters.dateRange) {
+        case 'today':
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case '24h':
+          startDate.setHours(now.getHours() - 24);
+          break;
+        case '7d':
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case '30d':
+          startDate.setDate(now.getDate() - 30);
+          break;
+        case '1y':
+          startDate.setFullYear(now.getFullYear() - 1);
+          break;
+        case 'custom':
+          if (filters.customStart) {
+            startDate = new Date(filters.customStart);
+          }
+          break;
+      }
+
+      result = result.filter(entry => {
+        const entryDate = new Date(entry.submittedAt);
+        return entryDate >= startDate && entryDate <= now;
+      });
+    }
 
     setFilteredEntries(result);
   };
 
-  // Fetch data on initial load
   useEffect(() => {
     fetchEntries();
   }, []);
 
-  // Apply filters when they change
   useEffect(() => {
     if (entries.length > 0) {
       applyFilters();
     }
   }, [filters, entries]);
 
-  // Other helper functions remain the same...
   const toggleDarkMode = () => setDarkMode(!darkMode);
   const openModal = (entry) => {
     setSelectedEntry(entry);
@@ -154,7 +152,8 @@ const Dashboard = () => {
       customStart: '',
       customEnd: '',
       educationLevel: '',
-      searchTerm: ''
+      searchTerm: '',
+      employmentDesired: ''
     });
   };
   const renderField = (label, value) => {
@@ -165,10 +164,358 @@ const Dashboard = () => {
       </p>
     );
   };
+
+  const exportData = (format) => {
+    const dataToExport = filteredEntries.length > 0 ? filteredEntries : entries;
+    
+    switch(format) {
+      case 'csv':
+        exportToCSV(dataToExport);
+        break;
+      case 'excel':
+        exportToExcel(dataToExport);
+        break;
+      case 'pdf':
+        exportToPDF(dataToExport);
+        break;
+      default:
+        exportToCSV(dataToExport);
+    }
+  };
+
+  const exportToCSV = (data) => {
+    const headers = [
+      ['Name', 'fullName'],
+      ['Email', 'email'],
+      ['Nationality', 'nationality'],
+      ['Date of Birth', 'dateOfBirth'],
+      ['Mobile Contact', 'mobileContact'],
+      ['WhatsApp', 'whatsapp'],
+      ['Current Address', 'currentAddress'],
+      ['CPR/National ID', 'cprNationalId'],
+      ['Passport ID', 'passportId'],
+      ['Passport Validity', 'passportValidity'],
+      ['Education Level', 'educationLevel'],
+      ['Course/Degree', 'courseDegree'],
+      ['Currently Employed', 'currentlyEmployed'],
+      ['Employment Desired', 'employmentDesired'],
+      ['Available Start', 'availableStart'],
+      ['Shift Available', 'shiftAvailable'],
+      ['Can Travel', 'canTravel'],
+      ['Driving License', 'drivingLicense'],
+      ['Skills', 'skills'],
+      ['Visa Status', 'visaStatus'],
+      ['Visa Validity', 'visaValidity'],
+      ['Expected Salary', 'expectedSalary'],
+      ['Client Leads Strategy', 'clientLeadsStrategy'],
+      ['Reference 1 Name', 'ref1Name'],
+      ['Reference 1 Contact', 'ref1Contact'],
+      ['Reference 1 Email', 'ref1Email'],
+      ['Reference 2 Name', 'ref2Name'],
+      ['Reference 2 Contact', 'ref2Contact'],
+      ['Reference 2 Email', 'ref2Email'],
+      ['Reference 3 Name', 'ref3Name'],
+      ['Reference 3 Contact', 'ref3Contact'],
+      ['Reference 3 Email', 'ref3Email'],
+      ['Submitted At', 'submittedAt'],
+      ['Resume File', 'resumeFile']
+    ];
+  
+    let csv = headers.map(h => h[0]).join(',') + '\n';
+  
+    data.forEach(entry => {
+      const row = headers.map(([label, key]) => {
+        let value = entry[key] || '';
+  
+        // Custom formatting
+        if (key === 'currentlyEmployed') {
+          value = value === 'YES' ? 'Employed' : 'Not Employed';
+        } else if (key === 'submittedAt') {
+          value = new Date(value).toLocaleString();
+        } else if (key === 'resumeFile') {
+          value = value ? entry.resumeFile : '';
+        }
+  
+        return `"${String(value).replace(/"/g, '""')}"`;
+      });
+  
+      csv += row.join(',') + '\n';
+    });
+  
+    // Download CSV
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `candidates_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  
+  const exportToExcel = async (data) => {
+    try {
+      const XLSX = await import('xlsx');
+  
+      const excelData = data.map(entry => ({
+        'Name': entry.fullName,
+        'Email': entry.email,
+        'Nationality': entry.nationality,
+        'Date of Birth': entry.dateOfBirth,
+        'Mobile Contact': entry.mobileContact,
+        'WhatsApp': entry.whatsapp,
+        'Current Address': entry.currentAddress,
+        'CPR/National ID': entry.cprNationalId,
+        'Passport ID': entry.passportId,
+        'Passport Validity': entry.passportValidity,
+        'Education Level': entry.educationLevel,
+        'Course/Degree': entry.courseDegree,
+        'Currently Employed': entry.currentlyEmployed === 'YES' ? 'Employed' : 'Not Employed',
+        'Employment Desired': entry.employmentDesired,
+        'Available Start': entry.availableStart,
+        'Shift Available': entry.shiftAvailable,
+        'Can Travel': entry.canTravel,
+        'Driving License': entry.drivingLicense,
+        'Skills': entry.skills,
+        'Visa Status': entry.visaStatus,
+        'Visa Validity': entry.visaValidity,
+        'Expected Salary': entry.expectedSalary,
+        'Client Leads Strategy': entry.clientLeadsStrategy,
+        'Reference 1 Name': entry.ref1Name,
+        'Reference 1 Contact': entry.ref1Contact,
+        'Reference 1 Email': entry.ref1Email,
+        'Reference 2 Name': entry.ref2Name,
+        'Reference 2 Contact': entry.ref2Contact,
+        'Reference 2 Email': entry.ref2Email,
+        'Reference 3 Name': entry.ref3Name,
+        'Reference 3 Contact': entry.ref3Contact,
+        'Reference 3 Email': entry.ref3Email,
+        'Submitted At': new Date(entry.submittedAt).toLocaleString(),
+        'Resume File': entry.resumeFile || ''
+      }));
+  
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      
+      // Set column widths for better spacing
+      worksheet['!cols'] = [
+        { wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 },
+        { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 20 }, { wch: 25 },
+        { wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 },
+        { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 20 },
+        { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
+        { wch: 20 }, { wch: 25 }, { wch: 40 } , { wch: 180 }
+      ];
+  
+      // Add hyperlinks for Resume File column
+      const resumeColIndex = 33; // zero-based index for 'Resume File' column
+
+      data.forEach((entry, idx) => {
+        const rowNumber = idx + 2; // header is row 1, data starts row 2
+        if (entry.resumeFile) {
+          const cellAddress = XLSX.utils.encode_cell({ c: resumeColIndex, r: rowNumber - 1 });
+          // Create cell if doesn't exist
+          if (!worksheet[cellAddress]) worksheet[cellAddress] = {};
+          
+          worksheet[cellAddress].v = 'Resume Link'; // text shown
+          worksheet[cellAddress].t = 's';           // cell type string
+          worksheet[cellAddress].l = {               // hyperlink object
+            Target: entry.resumeFile ,
+            Tooltip: 'Open Resume'
+          };
+        }
+      });
+      
+  
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidates');
+      XLSX.writeFile(workbook, `candidates_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    } catch (err) {
+      console.error('Error exporting to Excel:', err);
+    }
+  };
+  
+  const exportToPDF = async (data) => {
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+  
+      const doc = new jsPDF();
+  
+      // Check if data is empty
+      if (!data || data.length === 0) {
+        doc.text('No candidate data available', 14, 20);
+        doc.save(`candidates_export_${new Date().toISOString().slice(0, 10)}.pdf`);
+        return;
+      }
+  
+      // Title
+      doc.setFontSize(18);
+      doc.text('Candidate Export', 14, 15);
+      doc.setFontSize(11);
+      doc.setTextColor(100);
+  
+      // Prepare table data for the summary page
+      const tableData = data.map(entry => [
+        entry.fullName || '-',
+        entry.email || '-',
+        entry.nationality || '-',
+        entry.currentlyEmployed === 'YES' ? 'Employed' : 'Not Employed',
+        entry.employmentDesired || '-',
+        entry.expectedSalary || '-',
+        entry.submittedAt ? new Date(entry.submittedAt).toLocaleDateString() : '-'
+      ]);
+  
+      // Add summary table
+      autoTable(doc, {
+        head: [['Name', 'Email', 'Nationality', 'Employment', 'Employment Desired', 'Expected Salary', 'Date Submitted']],
+        body: tableData,
+        startY: 25,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [41, 128, 185],
+          textColor: 255,
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        }
+      });
+  
+      // Get the last Y position after the summary table
+      const summaryEndY = doc.lastAutoTable.finalY;
+  
+      // Add detailed pages for each candidate
+      data.forEach((entry, index) => {
+        let yPos;
+  
+        if (index === 0) {
+          // For the first candidate detailed page,
+          // decide if start on same page or new page based on space left
+          if (summaryEndY + 100 > 280) {
+            // Not enough space, add a new page
+            doc.addPage();
+            yPos = 20;
+          } else {
+            // Enough space, start below the summary table
+            yPos = summaryEndY + 10;
+          }
+        } else {
+          // For subsequent candidates, always add a new page
+          doc.addPage();
+          yPos = 20;
+        }
+  
+        // Candidate Details header
+        doc.setFontSize(16);
+        doc.setTextColor(0);
+        doc.text(`Candidate Details: ${entry.fullName || 'Unknown'}`, 14, yPos);
+        yPos += 10;
+  
+        // Basic info lines
+        doc.setFontSize(12);
+        const details = [
+          `Email: ${entry.email || '-'}`,
+          `Nationality: ${entry.nationality || '-'}`,
+          `Date of Birth: ${entry.dateOfBirth || '-'}`,
+          `Contact: ${entry.mobileContact || '-'}`,
+          `WhatsApp: ${entry.whatsapp || '-'}`,
+          `Address: ${entry.currentAddress || '-'}`,
+          `CPR/National ID: ${entry.cprNationalId || '-'}`,
+          `Passport: ${entry.passportId || '-'} (Valid until: ${entry.passportValidity || '-'})`,
+          `Visa: ${entry.visaStatus || '-'} (Valid until: ${entry.visaValidity || '-'})`,
+          `Education: ${entry.educationLevel || '-'}`,
+          `Course/Degree: ${entry.courseDegree || '-'}`,
+          `Skills: ${entry.skills || '-'}`,
+          `Expected Salary: ${entry.expectedSalary || '-'}`,
+        `Resume: ${entry.resumeFile || 'None'}`
+        ];
+  
+        details.forEach(detail => {
+          // Check if a new page is needed (leave 20mm margin at bottom)
+          if (yPos > 270) {
+            doc.addPage();
+            yPos = 20;
+          }
+          doc.text(detail, 14, yPos);
+          yPos += 7;
+        });
+  
+        // Space before tables
+        yPos += 10;
+  
+        // Employment details table
+        const employmentDetails = [
+          ['Field', 'Value'],
+          ['Currently Employed', entry.currentlyEmployed === 'YES' ? 'Yes' : 'No'],
+          ['Desired Employment', entry.employmentDesired || '-'],
+          ['Available Start Date', entry.availableStart || '-'],
+          ['Shift Availability', entry.shiftAvailable || '-'],
+          ['Can Travel', entry.canTravel || '-'],
+          ['Driving License', entry.drivingLicense || '-']
+        ];
+  
+        autoTable(doc, {
+          startY: yPos,
+          head: [employmentDetails[0]],
+          body: employmentDetails.slice(1),
+          theme: 'grid',
+          headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            fontStyle: 'bold'
+          }
+        });
+  
+        // Update yPos after employment table
+        yPos = doc.lastAutoTable.finalY + 10;
+  
+        // References table (if available)
+        const references = [];
+        if (entry.ref1Name || entry.ref1Contact || entry.ref1Email) {
+          references.push(['Reference 1', entry.ref1Name || '', entry.ref1Contact || '', entry.ref1Email || '']);
+        }
+        if (entry.ref2Name || entry.ref2Contact || entry.ref2Email) {
+          references.push(['Reference 2', entry.ref2Name || '', entry.ref2Contact || '', entry.ref2Email || '']);
+        }
+        if (entry.ref3Name || entry.ref3Contact || entry.ref3Email) {
+          references.push(['Reference 3', entry.ref3Name || '', entry.ref3Contact || '', entry.ref3Email || '']);
+        }
+  
+        if (references.length > 0) {
+          if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+          }
+  
+          autoTable(doc, {
+            startY: yPos,
+            head: [['Reference', 'Name', 'Contact', 'Email']],
+            body: references,
+            theme: 'grid',
+            headStyles: {
+              fillColor: [41, 128, 185],
+              textColor: 255,
+              fontStyle: 'bold'
+            }
+          });
+        }
+      });
+  
+      // Save the PDF
+      doc.save(`candidates_export_${new Date().toISOString().slice(0, 10)}.pdf`);
+  
+    } catch (err) {
+      console.error('Error exporting to PDF:', err);
+      alert('Error generating PDF: ' + err.message);
+    }
+  };
+  
+  
   return (
     <div className={`min-h-screen transition-colors font-noto-serif duration-300 ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
-        <AdminNavbar />
-      <div className="p-6  max-w-7xl mx-auto">
+      <AdminNavbar />
+      <div className="p-6 max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <motion.h1 
             initial={{ opacity: 0, y: -10 }}
@@ -178,7 +525,7 @@ const Dashboard = () => {
             Applications Dashboard
           </motion.h1>
           <div className='mt-20'>
-          <Toggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+            <Toggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
           </div>
         </div>
 
@@ -189,7 +536,7 @@ const Dashboard = () => {
           clearAllFilters={clearAllFilters}
         />
 
-{loading ? (
+        {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
             {[...Array(6)].map((_, idx) => (
               <Skeleton key={idx} darkMode={darkMode} />
@@ -211,6 +558,38 @@ const Dashboard = () => {
                 >
                   Refresh
                 </button>
+                <div className="relative group">
+                  <button 
+                    className={`px-3 py-1 cursor-pointer text-xs rounded-full transition-colors ${
+                      darkMode ? 'bg-green-900 text-green-200 hover:bg-green-800' 
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                    }`}
+                  >
+                    Export Data
+                  </button>
+                  <div className={`absolute right-0 mt-1 w-40 rounded-md shadow-lg py-1 z-10 hidden group-hover:block ${
+                    darkMode ? 'bg-gray-700' : 'bg-white'
+                  }`}>
+                    <button 
+                      onClick={() => exportData('csv')}
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
+                    >
+                      CSV Format
+                    </button>
+                    <button 
+                      onClick={() => exportData('excel')}
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
+                    >
+                      Excel Format
+                    </button>
+                    <button 
+                      onClick={() => exportData('pdf')}
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
+                    >
+                      PDF Format
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -292,7 +671,7 @@ const Dashboard = () => {
                           <div className="flex items-center space-x-2">
                             {entry.resumeFile && (
                               <a
-                                href={`https://gvs-application-form-1.onrender.com/uploads/${entry.resumeFile}`}
+                                href={entry.resumeFile}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`text-xs flex items-center ${
@@ -536,8 +915,6 @@ const Dashboard = () => {
     {showPDF && (
   <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
     <div className="bg-white rounded-lg overflow-hidden w-[90%] h-[90%] relative shadow-lg">
-      
-      {/* Close Button */}
       <button
         onClick={() => setShowPDF(false)}
         className="absolute top-2 right-3 bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg z-50 hover:bg-red-500 hover:text-white transition"
@@ -546,13 +923,11 @@ const Dashboard = () => {
         &times;
       </button>
 
-      {/* Download Button */}
       <button
         onClick={() => {
-          // Create a hidden anchor tag to trigger download
           const link = document.createElement('a');
-          link.href = `https://gvs-application-form-1.onrender.com/uploads/${selectedEntry.resumeFile}?download=true`;
-          link.download = selectedEntry.resumeFile || 'resume.pdf';
+          link.href = selectedEntry.resumeFile;
+          link.download = selectedEntry.resumeFile.split('/').pop() || 'resume.pdf';
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -563,9 +938,8 @@ const Dashboard = () => {
         ⬇
       </button>
 
-      {/* PDF Viewer */}
       <iframe
-        src={`https://gvs-application-form-1.onrender.com/uploads/${selectedEntry.resumeFile}`}
+        src={selectedEntry.resumeFile}
         title="Resume Viewer"
         className="w-full h-full border-none"
       ></iframe>

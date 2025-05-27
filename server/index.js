@@ -8,7 +8,7 @@ const fs = require('fs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
-
+const cloudinary = require('cloudinary').v2;
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -16,6 +16,20 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+
+cloudinary.config({ 
+  cloud_name: 'ds1dt3qub', 
+  api_key: '812267761956811', 
+  api_secret: 'mSDcT7ojdMLhFUPrbPHtOeL4hqk'
+});
+
+// Remove the multer disk storage configuration and replace with memory storage
+const storage = multer.memoryStorage(); // Store file in memory for Cloudinary upload
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
 
 // Create MySQL connection pool
 const pool = mysql.createPool({
@@ -42,25 +56,25 @@ pool.getConnection()
   });
 
 // File download/view route
-app.get('/uploads/:filename', async (req, res) => {
-  try {
-    const filename = path.basename(req.params.filename);
-    const filePath = path.join(__dirname, 'uploads', filename);
+// app.get('/uploads/:filename', async (req, res) => {
+//   try {
+//     const filename = path.basename(req.params.filename);
+//     const filePath = path.join(__dirname, 'uploads', filename);
     
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).send('File not found');
-    }
+//     if (!fs.existsSync(filePath)) {
+//       return res.status(404).send('File not found');
+//     }
 
-    if (req.query.download === 'true') {
-      res.download(filePath, filename);
-    } else {
-      res.sendFile(filePath);
-    }
-  } catch (error) {
-    console.error('Route error:', error);
-    res.status(500).send('Server error');
-  }
-});
+//     if (req.query.download === 'true') {
+//       res.download(filePath, filename);
+//     } else {
+//       res.sendFile(filePath);
+//     }
+//   } catch (error) {
+//     console.error('Route error:', error);
+//     res.status(500).send('Server error');
+//   }
+// });
 
 // Admin authentication routes
 app.post('/admin/signup', async (req, res) => {
@@ -107,24 +121,7 @@ app.post('/admin/login', async (req, res) => {
 });
 
 // Multer config for file upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Create uploads directory if it doesn't exist
-    if (!fs.existsSync('uploads')) {
-      fs.mkdirSync('uploads');
-    }
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + '-' + file.originalname;
-    cb(null, uniqueName);
-  },
-});
 
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-});
 
 // Form entries route with better error handling
 app.get('/admin/form-entries', async (req, res) => {
@@ -225,16 +222,21 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
 
     try {
       console.log('Received form data:', data);
+      let fileUrl = null;
+      
       if (file) {
-        console.log('Uploaded file info:', {
-          originalname: file.originalname,
-          filename: file.filename,
-          path: file.path,
-          mimetype: file.mimetype,
-          size: file.size,
+        console.log('Uploading file to Cloudinary...');
+        // Convert buffer to a data URI for Cloudinary
+        const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        
+        // Upload to Cloudinary
+        const result = await cloudinary.uploader.upload(dataUri, {
+          resource_type: "auto",
+          folder: "job_applications" // Optional folder in Cloudinary
         });
-      } else {
-        console.log('No file uploaded.');
+        
+        fileUrl = result.secure_url;
+        console.log('File uploaded to Cloudinary:', fileUrl);
       }
 
       const sql = `
@@ -254,7 +256,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         data.ref1Name, data.ref1Contact, data.ref1Email, data.ref2Name, data.ref2Contact, data.ref2Email,
         data.ref3Name, data.ref3Contact, data.ref3Email,
         data.visaStatus, data.visaValidity, data.expectedSalary, data.clientLeadsStrategy,
-        file ? file.filename : null
+        fileUrl // Store the Cloudinary URL instead of local filename
       ];
 
       console.log('Prepared SQL query:', sql);
@@ -268,12 +270,6 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
     } catch (err) {
       await connection.rollback();
       console.error('Error inserting data:', err);
-      
-      // Delete the uploaded file if the DB operation failed
-      if (file && fs.existsSync(file.path)) {
-        fs.unlinkSync(file.path);
-      }
-      
       res.status(500).send('Error saving data');
     } finally {
       connection.release();
