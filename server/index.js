@@ -19,9 +19,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Cloudinary configuration
 cloudinary.config({ 
-  cloud_name: 'ds1dt3qub', 
-  api_key: '812267761956811', 
-  api_secret: 'mSDcT7ojdMLhFUPrbPHtOeL4hqk'
+  cloud_name: 'dtjskgsnk', 
+  api_key: '436914783989196', 
+  api_secret: 'Lep8ycU_F2r3XP6ewZR2o5spOZs'
 });
 
 // Multer memory storage for file uploads
