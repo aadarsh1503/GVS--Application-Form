@@ -6,7 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const cloudinary = require('cloudinary').v2;
+const ImageKit = require('imagekit');
 require('dotenv').config();
 
 const app = express();
@@ -17,11 +17,11 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Cloudinary configuration
-cloudinary.config({ 
-  cloud_name: 'dtjskgsnk', 
-  api_key: '436914783989196', 
-  api_secret: 'Lep8ycU_F2r3XP6ewZR2o5spOZs'
+// ImageKit configuration
+const imagekit = new ImageKit({
+  publicKey: 'public_h8xhj/+deMqx5gSP3ZQQqQgnX8k=',
+  privateKey: 'private_4oWrcG0v2LrIujJoZhQwgr3ur5Q=', // Store this in your .env file
+  urlEndpoint: 'https://ik.imagekit.io/vckkcrf8c'
 });
 
 // Multer memory storage for file uploads
@@ -266,20 +266,16 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
       
       if (file) {
         originalFilename = file.originalname;
-        const fileExt = path.extname(originalFilename);
-        const resourceType = file.mimetype.startsWith('image/') ? 'image' : 'raw';
         fileType = file.mimetype;
         
-        const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-        const result = await cloudinary.uploader.upload(dataUri, {
-          resource_type: resourceType,
+        const result = await imagekit.upload({
+          file: file.buffer,
+          fileName: originalFilename,
           folder: "job_applications",
-          public_id: path.basename(originalFilename, fileExt),
-          use_filename: true,
-          unique_filename: false
+          useUniqueFileName: false
         });
         
-        fileUrl = result.secure_url;
+        fileUrl = result.url;
       }
 
       // Check if originalFilename column exists
@@ -337,6 +333,17 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
   } catch (err) {
     console.error('Error getting database connection:', err);
     res.status(500).send('Database connection error');
+  }
+});
+
+// ImageKit authentication endpoint (for client-side uploads if needed)
+app.get('/imagekit-auth', (req, res) => {
+  try {
+    const authenticationParameters = imagekit.getAuthenticationParameters();
+    res.json(authenticationParameters);
+  } catch (err) {
+    console.error('ImageKit auth error:', err);
+    res.status(500).send('Error generating auth parameters');
   }
 });
 
