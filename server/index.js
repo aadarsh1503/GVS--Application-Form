@@ -56,25 +56,21 @@ pool.getConnection()
   });
 
 // File download endpoint
-// Update your download-file endpoint
 app.get('/download-file', async (req, res) => {
   try {
     const { url, filename } = req.query;
     if (!url) return res.status(400).send('File URL required');
     
-    // Determine content type based on file extension or URL
     let contentType = 'application/octet-stream';
     let extension = '';
     
     if (filename) {
       extension = path.extname(filename).toLowerCase();
     } else {
-      // Try to extract from URL if filename not provided
       const urlPath = new URL(url).pathname;
       extension = path.extname(urlPath).toLowerCase();
     }
 
-    // Set appropriate content type based on extension
     switch(extension) {
       case '.pdf':
         contentType = 'application/pdf';
@@ -92,21 +88,16 @@ app.get('/download-file', async (req, res) => {
       case '.png':
         contentType = 'image/png';
         break;
-      // Add more as needed
     }
 
-    // Set headers
     res.setHeader('Content-Type', contentType);
     
-    // If filename is provided, use it for download
     if (filename) {
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     } else {
-      // Fallback to generic filename if no filename provided
       res.setHeader('Content-Disposition', `attachment; filename="file${extension}"`);
     }
 
-    // Redirect to the actual file URL
     return res.redirect(url);
   } catch (error) {
     console.error('Download error:', error);
@@ -158,13 +149,23 @@ app.post('/admin/login', async (req, res) => {
   }
 });
 
-// Multer config for file upload
-
-
-// Form entries route with better error handling
+// Form entries route with column existence check
 app.get('/admin/form-entries', async (req, res) => {
   try {
-    let baseQuery = 'SELECT *, originalFilename FROM form_entries';
+    // First check if the column exists
+    const [columns] = await pool.execute(`
+      SELECT COLUMN_NAME 
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_NAME = 'form_entries' 
+      AND COLUMN_NAME = 'originalFilename'
+    `);
+
+    const hasOriginalFilename = columns.length > 0;
+    
+    let baseQuery = hasOriginalFilename 
+      ? 'SELECT *, originalFilename FROM form_entries'
+      : 'SELECT * FROM form_entries';
+      
     const conditions = [];
     const values = [];
 
@@ -238,7 +239,8 @@ app.get('/admin/form-entries', async (req, res) => {
     const processedResults = results.map(entry => ({
       ...entry,
       currentlyEmployed: entry.currentlyEmployed,
-      visaStatus: entry.visaStatus || null
+      visaStatus: entry.visaStatus || null,
+      originalFilename: hasOriginalFilename ? entry.originalFilename : null
     }));
 
     res.status(200).json(processedResults);
@@ -248,7 +250,7 @@ app.get('/admin/form-entries', async (req, res) => {
   }
 });
 
-// Form submission with transaction support
+// Form submission with transaction support and column check
 app.post('/submit-form', upload.single('file'), async (req, res) => {
   const data = req.body;
   const file = req.file;
@@ -263,22 +265,16 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
       let originalFilename = null;
       
       if (file) {
-        // Get original filename and extension
         originalFilename = file.originalname;
         const fileExt = path.extname(originalFilename);
-        
-        // Determine resource type based on file mimetype
         const resourceType = file.mimetype.startsWith('image/') ? 'image' : 'raw';
         fileType = file.mimetype;
         
-        // Convert buffer to data URI for Cloudinary
         const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-        
-        // Upload to Cloudinary with correct resource type and original filename
         const result = await cloudinary.uploader.upload(dataUri, {
           resource_type: resourceType,
           folder: "job_applications",
-          public_id: path.basename(originalFilename, fileExt), // Remove extension for public_id
+          public_id: path.basename(originalFilename, fileExt),
           use_filename: true,
           unique_filename: false
         });
@@ -286,7 +282,17 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         fileUrl = result.secure_url;
       }
 
-      const sql = `
+      // Check if originalFilename column exists
+      const [columns] = await connection.execute(`
+        SELECT COLUMN_NAME 
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_NAME = 'form_entries' 
+        AND COLUMN_NAME = 'originalFilename'
+      `);
+
+      const hasOriginalFilename = columns.length > 0;
+
+      const sql = hasOriginalFilename ? `
         INSERT INTO form_entries (
           email, fullName, dateOfBirth, nationality, mobileContact, whatsapp, currentAddress,
           cprNationalId, passportId, passportValidity, educationLevel, courseDegree, currentlyEmployed,
@@ -294,6 +300,14 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
           ref1Name, ref1Contact, ref1Email, ref2Name, ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email,
           visaStatus, visaValidity, expectedSalary, clientLeadsStrategy, resumeFile, fileType, originalFilename
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ` : `
+        INSERT INTO form_entries (
+          email, fullName, dateOfBirth, nationality, mobileContact, whatsapp, currentAddress,
+          cprNationalId, passportId, passportValidity, educationLevel, courseDegree, currentlyEmployed,
+          employmentDesired, availableStart, shiftAvailable, canTravel, drivingLicense, skills,
+          ref1Name, ref1Contact, ref1Email, ref2Name, ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email,
+          visaStatus, visaValidity, expectedSalary, clientLeadsStrategy, resumeFile, fileType
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const values = [
@@ -303,8 +317,12 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         data.ref1Name, data.ref1Contact, data.ref1Email, data.ref2Name, data.ref2Contact, data.ref2Email,
         data.ref3Name, data.ref3Contact, data.ref3Email,
         data.visaStatus, data.visaValidity, data.expectedSalary, data.clientLeadsStrategy,
-        fileUrl, fileType, originalFilename
+        fileUrl, fileType
       ];
+
+      if (hasOriginalFilename) {
+        values.push(originalFilename);
+      }
 
       await connection.query(sql, values);
       await connection.commit();
