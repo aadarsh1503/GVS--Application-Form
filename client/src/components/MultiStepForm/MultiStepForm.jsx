@@ -56,7 +56,7 @@ const MultiStepForm = () => {
   const [submittedStep, setSubmittedStep] = useState(null);
   const [progressWidth, setProgressWidth] = useState('25%');
   const [showSuccess, setShowSuccess] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   const steps = [
       { id: 1, name: 'Personal Info', icon: <FaUser />, color: '#3B82F6' },
       { id: 2, name: 'Education/Work', icon: <FaBriefcase />, color: '#6366F1' },
@@ -372,81 +372,84 @@ const MultiStepForm = () => {
   };
 
   const handleSubmit = async (e) => {
-      console.log('Submit button clicked, current step:', step);
-      e?.preventDefault();
-      
-      if (step !== 4) {
-          console.log('Attempted submission from step', step, 'but only step 4 is allowed');
-          return;
-      }
-      
-      const valid = validateStep(step);
-      setSubmittedStep(step);
-  
-      if (!valid) {
-          console.log('Submission validation failed');
-          toast.error("Please complete all fields!", {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "colored",
-              style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
-          });
-          return;
-      }
-  
-      try {
-          console.log('Preparing form data for submission');
-          const formDataToSend = new FormData();
-          for (const key in formData) {
-              formDataToSend.append(key, formData[key]);
-          }
-          if (file) formDataToSend.append('file', file);
-  
-          console.log('Sending form data to server');
-          const response = await fetch('https://gvs-application-form-1.onrender.com/submit-form', {
-              method: 'POST',
-              body: formDataToSend,
-          });
-  
-          if (!response.ok) {
-              console.error('Submission failed with status:', response.status);
-              throw new Error('Failed to submit');
-          }
-          
-          console.log('Submission successful');
-          setIsSubmitted(true);
-          setShowSuccess(true);
-          toast.success("🎉 Application submitted successfully!", {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "colored",
-              style: { backgroundColor: '#D1FAE5', color: '#065F46' }
-          });
-      } catch (error) {
-          console.error('Submission error:', error);
-          toast.error("⚠️ Submission failed! Please try again.", {
-              position: "top-right",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-              theme: "colored",
-              style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
-          });
-      }
-  };
+    console.log('Submit button clicked, current step:', step);
+    e?.preventDefault();
+    
+    if (step !== 4 || isLoading) { // Prevent submission if already loading
+        console.log('Attempted submission from step', step, 'but only step 4 is allowed');
+        return;
+    }
+    
+    const valid = validateStep(step);
+    setSubmittedStep(step);
+
+    if (!valid) {
+        console.log('Submission validation failed');
+        toast.error("Please complete all fields!", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+            style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
+        });
+        return;
+    }
+
+    try {
+        setIsLoading(true); // Start loading
+        console.log('Preparing form data for submission');
+        const formDataToSend = new FormData();
+        for (const key in formData) {
+            formDataToSend.append(key, formData[key]);
+        }
+        if (file) formDataToSend.append('file', file);
+
+        console.log('Sending form data to server');
+        const response = await fetch('https://gvs-application-form-1.onrender.com/submit-form', {
+            method: 'POST',
+            body: formDataToSend,
+        });
+
+        if (!response.ok) {
+            console.error('Submission failed with status:', response.status);
+            throw new Error('Failed to submit');
+        }
+        
+        console.log('Submission successful');
+        setIsSubmitted(true);
+        setShowSuccess(true);
+        toast.success("🎉 Application submitted successfully!", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+            style: { backgroundColor: '#D1FAE5', color: '#065F46' }
+        });
+    } catch (error) {
+        console.error('Submission error:', error);
+        toast.error("⚠️ Submission failed! Please try again.", {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "colored",
+            style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
+        });
+    } finally {
+        setIsLoading(false); // Stop loading regardless of success/error
+    }
+};
 //   const handleSubmit = async (e) => {
 //     console.log('Submit button clicked, current step:', step);
 //     e?.preventDefault();
@@ -729,17 +732,37 @@ const MultiStepForm = () => {
                       ) : (
                           <div></div>
                       )}
-                      {step === 4 ? (
-                          <motion.button
-                              type="submit"
-                              className="px-6 py-3 cursor-pointer bg-gradient-to-r from-[#10B981] to-[#059669] text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 font-medium flex items-center gap-2"
-                              whileHover={{ scale: 1.03, boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}
-                              whileTap={{ scale: 0.98 }}
-                          >
-                              Submit Application
-                              <FaFileUpload className="text-sm" />
-                          </motion.button>
-                      ) : (
+                     {step === 4 ? (
+    <motion.button
+        type="submit"
+        disabled={isLoading}
+        className="px-6 py-3 cursor-pointer bg-gradient-to-r from-[#10B981] to-[#059669] text-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 font-medium flex items-center justify-center gap-2 min-w-[180px]"
+        whileHover={!isLoading ? { 
+            scale: 1.03, 
+            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' 
+        } : {}}
+        whileTap={!isLoading ? { scale: 0.98 } : {}}
+    >
+        {isLoading ? (
+            <div className="flex items-center justify-center">
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ 
+                        repeat: Infinity, 
+                        duration: 1, 
+                        ease: "linear" 
+                    }}
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                />
+            </div>
+        ) : (
+            <>
+                Submit Application
+                <FaFileUpload className="text-sm" />
+            </>
+        )}
+    </motion.button>
+) : (
                         <motion.button
                         type="button"
                         onClick={(e) => nextStep(e)}

@@ -19,9 +19,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // ImageKit configuration
 const imagekit = new ImageKit({
-  publicKey: 'public_h8xhj/+deMqx5gSP3ZQQqQgnX8k=',
-  privateKey: 'private_4oWrcG0v2LrIujJoZhQwgr3ur5Q=', // Store this in your .env file
-  urlEndpoint: 'https://ik.imagekit.io/vckkcrf8c'
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 });
 
 // Multer memory storage for file uploads

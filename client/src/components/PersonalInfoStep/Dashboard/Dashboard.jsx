@@ -11,6 +11,12 @@ const Dashboard = () => {
   const [filteredEntries, setFilteredEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPDF, setShowPDF] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
   const [darkMode, setDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('darkMode');
     return savedMode ? JSON.parse(savedMode) : window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -37,6 +43,7 @@ const Dashboard = () => {
     }
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
   }, [darkMode]);
+
   const fetchEntries = async () => {
     setLoading(true);
     try {
@@ -49,6 +56,7 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
   const applyFilters = () => {
     let result = [...entries];
     
@@ -556,38 +564,52 @@ const Dashboard = () => {
                 >
                   Refresh
                 </button>
-                <div className="relative group">
-                  <button 
-                    className={`px-3 py-1 cursor-pointer text-xs rounded-full transition-colors ${
-                      darkMode ? 'bg-green-900 text-green-200 hover:bg-green-800' 
-                      : 'bg-green-100 text-green-700 hover:bg-green-200'
-                    }`}
-                  >
-                    Export Data
-                  </button>
-                  <div className={`absolute right-0 mt-1 w-40 rounded-md shadow-lg py-1 z-10 hidden group-hover:block ${
-                    darkMode ? 'bg-gray-700' : 'bg-white'
-                  }`}>
-                    <button 
-                      onClick={() => exportData('csv')}
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
-                    >
-                      CSV Format
-                    </button>
-                    <button 
-                      onClick={() => exportData('excel')}
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
-                    >
-                      Excel Format
-                    </button>
-                    <button 
-                      onClick={() => exportData('pdf')}
-                      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
-                    >
-                      PDF Format
-                    </button>
-                  </div>
-                </div>
+                <div className="relative">
+      <button 
+        onClick={toggleDropdown}
+        className={`px-3 py-1 cursor-pointer text-xs rounded-full transition-colors ${
+          darkMode ? 'bg-green-900 text-green-200 hover:bg-green-800' 
+          : 'bg-green-100 text-green-700 hover:bg-green-200'
+        }`}
+      >
+        Export Data
+      </button>
+      
+      {showDropdown && (
+  <div className={`absolute right-0 mt-1 w-40 rounded-md shadow-lg py-1 z-10 ${
+    darkMode ? 'bg-gray-700 text-white' : 'bg-white'
+  }`}>
+    <button 
+      onClick={() => {
+        exportData('excel');
+        setShowDropdown(false);
+      }}
+      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
+    >
+      Excel Format
+    </button>
+    <button 
+      onClick={() => {
+        exportData('pdf');
+        setShowDropdown(false);
+      }}
+      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
+    >
+      PDF Format
+    </button>
+    <button 
+      onClick={() => {
+        exportData('csv');
+        setShowDropdown(false);
+      }}
+      className="block w-full text-left px-4 py-2 text-sm hover:bg-indigo-100 dark:hover:bg-gray-600"
+    >
+      CSV Format
+    </button>
+  </div>
+)}
+
+    </div>
               </div>
             </div>
 
@@ -667,22 +689,21 @@ const Dashboard = () => {
                           darkMode ? 'border-gray-700' : 'border-gray-200'
                         } border-t`}>
                           <div className="flex items-center space-x-2">
-                          {entry.resumeFile && (
-                            <a
-  href={`https://gvs-application-form-1.onrender.com/download-file?url=${encodeURIComponent(entry.resumeFile)}&filename=${encodeURIComponent(entry.originalFilename || 'resume.pdf')}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className={`text-xs flex items-center ${
-    darkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-800'
-  }`}
->
-  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-  Download File
-</a>
-)}
-
+                            {entry.resumeFile && (
+                              <a
+                                href={entry.resumeFile}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`text-xs flex items-center ${
+                                  darkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-800'
+                                }`}
+                              >
+                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Resume
+                              </a>
+                            )}
                             <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                               Submitted at: {new Date(entry.submittedAt).toLocaleDateString()}
                             </span>
@@ -887,30 +908,28 @@ const Dashboard = () => {
                     </div>
                   </div>
                   {selectedEntry.resumeFile && (
-  <div className="mt-6 flex justify-center">
-<a
-  href={`https://gvs-application-form-1.onrender.com/download-file?url=${encodeURIComponent(selectedEntry.resumeFile)}&filename=${encodeURIComponent(selectedEntry.originalFilename || 'resume.pdf')}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
->
-  <svg
-    className="w-5 h-5 mr-2"
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-    />
-  </svg>
-  Download Full Resume
-</a>
-  </div>
-)}
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={() => setShowPDF(true)}
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+          >
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
+            </svg>
+            Download Full Resume
+          </button>
+        </div>
+      )}
 
     {/* PDF Modal Viewer */}
     {showPDF && (
@@ -919,22 +938,35 @@ const Dashboard = () => {
       <button
         onClick={() => setShowPDF(false)}
         className="absolute top-2 right-3 bg-white text-black rounded-full w-10 h-10 flex items-center justify-center shadow-lg z-50 hover:bg-red-500 hover:text-white transition"
+        title="Close"
       >
         &times;
       </button>
-      
+
+      <button
+        onClick={() => {
+          const link = document.createElement('a');
+          link.href = selectedEntry.resumeFile;
+          link.download = selectedEntry.resumeFile.split('/').pop() || 'resume.pdf';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }}
+        className="absolute top-2 right-18 bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg z-50 hover:bg-blue-800 transition"
+        title="Download"
+      >
+        ⬇
+      </button>
+
       <iframe
-        src={`${selectedEntry.resumeFile}#toolbar=1`}
+        src={selectedEntry.resumeFile}
         title="Resume Viewer"
         className="w-full h-full border-none"
-      >
-        <p>Your browser does not support PDFs. 
-          <a href={selectedEntry.resumeFile}>Download the resume</a> instead.
-        </p>
-      </iframe>
+      ></iframe>
     </div>
   </div>
 )}
+
 
                 </div>
               </motion.div>
