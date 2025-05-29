@@ -77,7 +77,7 @@ const PersonalInfoStep = ({ formData, errors, handleChange }) => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -100 }}
       transition={{ duration: 0.3 }}
-      className="space-y-4"
+      className="space-y-4 "
     >
       <h2 className="text-2xl font-bold text-dark mb-6">Personal Information</h2>
       

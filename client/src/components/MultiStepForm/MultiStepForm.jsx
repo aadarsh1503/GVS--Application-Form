@@ -555,7 +555,7 @@ const MultiStepForm = () => {
   };
 
   return (
-      <div className="max-w-5xl mx-auto p-6 font-noto-serif bg-gradient-to-br from-[#F9FAFB] to-[#e2e3e6] rounded-3xl shadow-2xl my-8 border border-opacity-10 border-gray-300">
+      <div className="max-w-5xl  mx-auto p-6 font-noto-serif bg-gradient-to-br from-[#F9FAFB] to-[#e2e3e6] rounded-3xl shadow-2xl my-8 border border-opacity-10 border-gray-300">
           {/* Animated Background Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none"></div>
 
@@ -647,62 +647,63 @@ const MultiStepForm = () => {
 
           {/* Interactive Progress Timeline */}
           {!showSuccess && (
-            <>
-              <div className="relative mb-12 px-4">
-                  <div className="flex justify-between relative z-10">
-                      {steps.map((stepItem, index) => (
-                          <div 
-                              key={stepItem.id} 
-                              className="flex flex-col items-center cursor-pointer"
-                              onClick={() => handleStepClick(stepItem.id)}
-                          >
-                              <motion.div 
-                                  className={`w-18 h-18 rounded-full flex items-center justify-center text-white transition-all duration-300 shadow-lg ${
-                                      step >= stepItem.id 
-                                          ? 'bg-gradient-to-br from-[${stepItem.color}] to-[${stepItem.color}]'
-                                          : 'bg-gray-200'
-                                  }`}
-                                  style={{
-                                      background: step >= stepItem.id 
-                                          ? `linear-gradient(135deg, ${stepItem.color}, ${stepItem.color})`
-                                          : '#E5E7EB'
-                                  }}
-                                  whileHover={{ scale: stepItem.id <= step ? 1.1 : 1 }}
-                                  whileTap={{ scale: 0.95 }}
-                              >
-                                  {step > stepItem.id ? (
-                                      <FaCheck className="text-xl" />
-                                  ) : React.cloneElement(stepItem.icon, { className: 'text-xl' })}
-                              </motion.div>
-                              <motion.span 
-                                  className={`text-md mt-3 font-semibold tracking-wide ${
-                                      step >= stepItem.id ? 'text-gray-900' : 'text-gray-500'
-                                  }`}
-                                  initial={{ y: 10, opacity: 0 }}
-                                  animate={{ y: 0, opacity: 1 }}
-                              >
-                                  {stepItem.name}
-                              </motion.span>
-                          </div>
-                      ))}
-                  </div>
-                  
-                  {/* Animated Progress Bar */}
-                  <div className="absolute top-8 left-8 right-5 ml-4 h-3 bg-gray-100 rounded-full -z-0 overflow-hidden">
-                      <motion.div 
-                          className="h-full bg-gradient-to-r from-[#3B82F6] via-[#6366F1] to-[#8B5CF6] rounded-full"
-                          initial={{ width: '0%' }}
-                          animate={{ width: progressWidth }}
-                          transition={{ duration: 0.5, ease: 'easeInOut' }}
-                      />
-                  </div>
-              </div>
+  <>
+    <div className="relative mb-12 px-4">
+      <div className="flex flex-col lg:flex-row items-center lg:justify-between gap-6 relative z-10">
+        {steps.map((stepItem, index) => (
+          <div
+            key={stepItem.id}
+            className="flex flex-col items-center cursor-pointer w-full lg:w-auto"
+            onClick={() => handleStepClick(stepItem.id)}
+          >
+            <motion.div
+              className={`w-18 h-18 rounded-full flex items-center justify-center text-white transition-all duration-300 shadow-lg ${
+                step >= stepItem.id
+                  ? 'bg-gradient-to-br from-[${stepItem.color}] to-[${stepItem.color}]'
+                  : 'bg-gray-200'
+              }`}
+              style={{
+                background:
+                  step >= stepItem.id
+                    ? `linear-gradient(135deg, ${stepItem.color}, ${stepItem.color})`
+                    : '#E5E7EB',
+              }}
+              whileHover={{ scale: stepItem.id <= step ? 1.1 : 1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {step > stepItem.id ? (
+                <FaCheck className="text-xl" />
+              ) : React.cloneElement(stepItem.icon, { className: 'text-xl' })}
+            </motion.div>
+            <motion.span
+              className={`text-md mt-3 font-semibold tracking-wide text-center ${
+                step >= stepItem.id ? 'text-gray-900' : 'text-gray-500'
+              }`}
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+            >
+              {stepItem.name}
+            </motion.span>
+          </div>
+        ))}
+      </div>
+
+      {/* Animated Progress Bar - only show on large screens */}
+      <div className="hidden lg:block absolute top-8 left-8 right-5 ml-4 h-3 bg-gray-100 rounded-full -z-0 overflow-hidden">
+        <motion.div
+          className="h-full bg-gradient-to-r from-[#3B82F6] via-[#6366F1] to-[#8B5CF6] rounded-full"
+          initial={{ width: '0%' }}
+          animate={{ width: progressWidth }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
+        />
+      </div>
+    </div>
 
               {/* Form Content */}
               <form onSubmit={(e) => {
                   e.preventDefault();
                   if (step === 4) handleSubmit();
-              }} className="relative z-10 px-4">
+              }} className="relative z-10 px-0 lg:px-4">
                   <AnimatePresence mode="wait">
                       <motion.div
                           key={step}
