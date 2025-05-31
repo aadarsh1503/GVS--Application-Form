@@ -199,6 +199,9 @@ const Dashboard = () => {
       ['Mobile Contact', 'mobileContact'],
       ['WhatsApp', 'whatsapp'],
       ['Current Address', 'currentAddress'],
+      ['Postal Code', 'postalCode'],
+      ['City', 'city'],
+      ['Country', 'country'],
       ['CPR/National ID', 'cprNationalId'],
       ['Passport ID', 'passportId'],
       ['Passport Validity', 'passportValidity'],
@@ -272,6 +275,9 @@ const Dashboard = () => {
         'Date of Birth': entry.dateOfBirth,
         'Mobile Contact': entry.mobileContact,
         'WhatsApp': entry.whatsapp,
+        'Postal Code': entry.postalCode || '',
+        'City': entry.city || '',
+        'Country': entry.country || '',
         'Current Address': entry.currentAddress,
         'CPR/National ID': entry.cprNationalId,
         'Passport ID': entry.passportId,
@@ -307,7 +313,7 @@ const Dashboard = () => {
       // Set column widths for better spacing
       worksheet['!cols'] = [
         { wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 },
-        { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 20 }, { wch: 25 },
+        { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 20 },{ wch: 20 },{ wch: 20 },{ wch: 20 }, { wch: 25 },
         { wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 },
         { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 20 },
         { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
@@ -315,7 +321,7 @@ const Dashboard = () => {
       ];
   
       // Add hyperlinks for Resume File column
-      const resumeColIndex = 33; // zero-based index for 'Resume File' column
+      const resumeColIndex = 36; // zero-based index for 'Resume File' column
 
       data.forEach((entry, idx) => {
         const rowNumber = idx + 2; // header is row 1, data starts row 2
@@ -427,6 +433,9 @@ const Dashboard = () => {
           `Date of Birth: ${entry.dateOfBirth || '-'}`,
           `Contact: ${entry.mobileContact || '-'}`,
           `WhatsApp: ${entry.whatsapp || '-'}`,
+          `Postal Code: ${entry.postalCode || '-'}`,
+          `City: ${entry.city || '-'}`,
+          `Country: ${entry.country || '-'}`,
           `Address: ${entry.currentAddress || '-'}`,
           `CPR/National ID: ${entry.cprNationalId || '-'}`,
           `Passport: ${entry.passportId || '-'} (Valid until: ${entry.passportValidity || '-'})`,
@@ -801,11 +810,14 @@ const Dashboard = () => {
                           Personal Details
                         </h3>
                         {renderField('Email', selectedEntry.email)}
-                        {renderField('Nationality', selectedEntry.nationality)}
-                        {renderField('Date of Birth', selectedEntry.dateOfBirth)}
-                        {renderField('Mobile Contact', selectedEntry.mobileContact)}
-                        {renderField('WhatsApp', selectedEntry.whatsapp)}
-                        {renderField('Current Address', selectedEntry.currentAddress)}
+  {renderField('Nationality', selectedEntry.nationality)}
+  {renderField('Date of Birth', selectedEntry.dateOfBirth)}
+  {renderField('Mobile Contact', selectedEntry.mobileContact)}
+  {renderField('WhatsApp', selectedEntry.whatsapp)}
+  {renderField('Current Address', selectedEntry.currentAddress)}
+  {renderField('Postal Code', selectedEntry.postalCode)}
+  {renderField('City', selectedEntry.city)}
+  {renderField('Country', selectedEntry.country)}
                       </div>
 
                       <div className={`p-4 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>

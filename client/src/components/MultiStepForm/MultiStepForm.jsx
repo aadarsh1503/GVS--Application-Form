@@ -249,6 +249,10 @@ const MultiStepForm = () => {
       else if (!/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = 'Invalid email format';
   
       if (!formData.fullName) newErrors.fullName = 'Full name is required';
+      if (!formData.postalCode) newErrors.postalCode = 'PostalCode is required';
+      if (!formData.country) newErrors.country = 'Country is required';
+      if (!formData.city) newErrors.city = 'City is required';
+
   
       if (!formData.mobileContact) newErrors.mobileContact = 'Mobile number is required';
       else if (!/^\+?\d{10,15}$/.test(formData.mobileContact)) newErrors.mobileContact = 'Invalid mobile number';
