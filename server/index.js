@@ -171,8 +171,14 @@ app.get('/admin/form-entries', async (req, res) => {
 
     // Build query conditions
     if (req.query.searchTerm) {
-      conditions.push('(fullName LIKE ? OR email LIKE ? OR skills LIKE ?)');
-      values.push(`%${req.query.searchTerm}%`, `%${req.query.searchTerm}%`, `%${req.query.searchTerm}%`);
+      conditions.push('(fullName LIKE ? OR email LIKE ? OR skills LIKE ? OR city LIKE ? OR country LIKE ?)');
+      values.push(
+        `%${req.query.searchTerm}%`, 
+        `%${req.query.searchTerm}%`, 
+        `%${req.query.searchTerm}%`,
+        `%${req.query.searchTerm}%`,
+        `%${req.query.searchTerm}%`
+      );
     }
 
     if (req.query.email) {
@@ -183,6 +189,16 @@ app.get('/admin/form-entries', async (req, res) => {
     if (req.query.nationality) {
       conditions.push('LOWER(nationality) LIKE LOWER(?)');
       values.push(`%${req.query.nationality}%`);
+    }
+
+    if (req.query.city) {
+      conditions.push('LOWER(city) LIKE LOWER(?)');
+      values.push(`%${req.query.city}%`);
+    }
+
+    if (req.query.country) {
+      conditions.push('LOWER(country) LIKE LOWER(?)');
+      values.push(`%${req.query.country}%`);
     }
 
     if (req.query.educationLevel) {
@@ -291,27 +307,31 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
       const sql = hasOriginalFilename ? `
         INSERT INTO form_entries (
           email, fullName, dateOfBirth, nationality, mobileContact, whatsapp, currentAddress,
-          cprNationalId, passportId, passportValidity, educationLevel, courseDegree, currentlyEmployed,
-          employmentDesired, availableStart, shiftAvailable, canTravel, drivingLicense, skills,
-          ref1Name, ref1Contact, ref1Email, ref2Name, ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email,
-          visaStatus, visaValidity, expectedSalary, clientLeadsStrategy, resumeFile, fileType, originalFilename
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          postalCode, city, country, cprNationalId, passportId, passportValidity, educationLevel, 
+          courseDegree, currentlyEmployed, employmentDesired, availableStart, shiftAvailable, 
+          canTravel, drivingLicense, skills, ref1Name, ref1Contact, ref1Email, ref2Name, 
+          ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email, visaStatus, visaValidity, 
+          expectedSalary, clientLeadsStrategy, resumeFile, fileType, originalFilename
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ` : `
         INSERT INTO form_entries (
           email, fullName, dateOfBirth, nationality, mobileContact, whatsapp, currentAddress,
-          cprNationalId, passportId, passportValidity, educationLevel, courseDegree, currentlyEmployed,
-          employmentDesired, availableStart, shiftAvailable, canTravel, drivingLicense, skills,
-          ref1Name, ref1Contact, ref1Email, ref2Name, ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email,
-          visaStatus, visaValidity, expectedSalary, clientLeadsStrategy, resumeFile, fileType
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          postalCode, city, country, cprNationalId, passportId, passportValidity, educationLevel, 
+          courseDegree, currentlyEmployed, employmentDesired, availableStart, shiftAvailable, 
+          canTravel, drivingLicense, skills, ref1Name, ref1Contact, ref1Email, ref2Name, 
+          ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email, visaStatus, visaValidity, 
+          expectedSalary, clientLeadsStrategy, resumeFile, fileType
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       const values = [
-        data.email, data.fullName, data.dateOfBirth, data.nationality, data.mobileContact, data.whatsapp, data.currentAddress,
-        data.cprNationalId, data.passportId, data.passportValidity, data.educationLevel, data.courseDegree, data.currentlyEmployed,
-        data.employmentDesired, data.availableStart, data.shiftAvailable, data.canTravel, data.drivingLicense, data.skills,
-        data.ref1Name, data.ref1Contact, data.ref1Email, data.ref2Name, data.ref2Contact, data.ref2Email,
-        data.ref3Name, data.ref3Contact, data.ref3Email,
+        data.email, data.fullName, data.dateOfBirth, data.nationality, data.mobileContact, 
+        data.whatsapp, data.currentAddress, data.postalCode, data.city, data.country,
+        data.cprNationalId, data.passportId, data.passportValidity, data.educationLevel, 
+        data.courseDegree, data.currentlyEmployed, data.employmentDesired, data.availableStart, 
+        data.shiftAvailable, data.canTravel, data.drivingLicense, data.skills,
+        data.ref1Name, data.ref1Contact, data.ref1Email, data.ref2Name, data.ref2Contact, 
+        data.ref2Email, data.ref3Name, data.ref3Contact, data.ref3Email,
         data.visaStatus, data.visaValidity, data.expectedSalary, data.clientLeadsStrategy,
         fileUrl, fileType
       ];
