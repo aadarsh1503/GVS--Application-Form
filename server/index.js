@@ -268,63 +268,73 @@ app.get('/admin/form-entries', async (req, res) => {
 
 // Form submission with transaction support and column check
 app.post('/submit-form', upload.single('file'), async (req, res) => {
+  console.log("🔹 Received a POST request to /submit-form");
+
   const data = req.body;
   const file = req.file;
 
+  console.log("📥 Form Data:", data);
+  console.log("📎 Uploaded File:", file);
+
   try {
     const connection = await pool.getConnection();
+    console.log("🔌 Database connection established");
+
     await connection.beginTransaction();
+    console.log("🔁 Transaction started");
 
     try {
       let fileUrl = null;
       let fileType = null;
       let originalFilename = null;
-      
+
       if (file) {
         originalFilename = file.originalname;
         fileType = file.mimetype;
-        
+
+        console.log("📤 Uploading file to ImageKit...");
         const result = await imagekit.upload({
           file: file.buffer,
           fileName: originalFilename,
           folder: "job_applications",
           useUniqueFileName: false
         });
-        
+
         fileUrl = result.url;
+        console.log("✅ File uploaded to ImageKit:", fileUrl);
       }
 
-      // Check if originalFilename column exists
+      // Check available columns
       const [columns] = await connection.execute(`
         SELECT COLUMN_NAME 
         FROM INFORMATION_SCHEMA.COLUMNS 
-        WHERE TABLE_NAME = 'form_entries' 
-        AND COLUMN_NAME = 'originalFilename'
+        WHERE TABLE_NAME = 'form_entries'
+        AND TABLE_SCHEMA = DATABASE()
       `);
 
-      const hasOriginalFilename = columns.length > 0;
+      const columnNames = columns.map(col => col.COLUMN_NAME);
+      console.log("🧱 Table Columns:", columnNames);
 
-      const sql = hasOriginalFilename ? `
-        INSERT INTO form_entries (
-          email, fullName, dateOfBirth, nationality, mobileContact, whatsapp, currentAddress,
-          postalCode, city, country, cprNationalId, passportId, passportValidity, educationLevel, 
-          courseDegree, currentlyEmployed, employmentDesired, availableStart, shiftAvailable, 
-          canTravel, drivingLicense, skills, ref1Name, ref1Contact, ref1Email, ref2Name, 
-          ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email, visaStatus, visaValidity, 
-          expectedSalary, clientLeadsStrategy, resumeFile, fileType, originalFilename
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ` : `
-        INSERT INTO form_entries (
-          email, fullName, dateOfBirth, nationality, mobileContact, whatsapp, currentAddress,
-          postalCode, city, country, cprNationalId, passportId, passportValidity, educationLevel, 
-          courseDegree, currentlyEmployed, employmentDesired, availableStart, shiftAvailable, 
-          canTravel, drivingLicense, skills, ref1Name, ref1Contact, ref1Email, ref2Name, 
-          ref2Contact, ref2Email, ref3Name, ref3Contact, ref3Email, visaStatus, visaValidity, 
-          expectedSalary, clientLeadsStrategy, resumeFile, fileType
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+      const hasOriginalFilename = columnNames.includes('originalFilename');
 
-      const values = [
+      const baseColumns = [
+        'email', 'fullName', 'dateOfBirth', 'nationality', 'mobileContact', 'whatsapp', 'currentAddress',
+        'postalCode', 'city', 'country', 'cprNationalId', 'passportId', 'passportValidity', 'educationLevel', 
+        'courseDegree', 'currentlyEmployed', 'employmentDesired', 'availableStart', 'shiftAvailable', 
+        'canTravel', 'drivingLicense', 'skills', 'ref1Name', 'ref1Contact', 'ref1Email', 'ref2Name', 
+        'ref2Contact', 'ref2Email', 'ref3Name', 'ref3Contact', 'ref3Email', 'visaStatus', 'visaValidity', 
+        'expectedSalary', 'clientLeadsStrategy', 'resumeFile', 'fileType'
+      ];
+
+      const validColumns = baseColumns.filter(col => columnNames.includes(col));
+      if (hasOriginalFilename) {
+        validColumns.push('originalFilename');
+      }
+
+      const placeholders = validColumns.map(() => '?').join(', ');
+      const sql = `INSERT INTO form_entries (${validColumns.join(', ')}) VALUES (${placeholders})`;
+
+      const baseValues = [
         data.email, data.fullName, data.dateOfBirth, data.nationality, data.mobileContact, 
         data.whatsapp, data.currentAddress, data.postalCode, data.city, data.country,
         data.cprNationalId, data.passportId, data.passportValidity, data.educationLevel, 
@@ -336,25 +346,35 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         fileUrl, fileType
       ];
 
+      const values = baseValues.slice(0, validColumns.length - (hasOriginalFilename ? 1 : 0));
       if (hasOriginalFilename) {
         values.push(originalFilename);
       }
 
+      console.log("📝 SQL Query:", sql);
+      console.log("📦 SQL Values:", values);
+
       await connection.query(sql, values);
+      console.log("✅ Data inserted successfully");
+
       await connection.commit();
+      console.log("🔒 Transaction committed");
+
       res.status(200).send('Form submitted successfully!');
     } catch (err) {
       await connection.rollback();
-      console.error('Error inserting data:', err);
+      console.error("❌ Error during DB operation:", err);
       res.status(500).send('Error saving data');
     } finally {
       connection.release();
+      console.log("🔓 Connection released");
     }
   } catch (err) {
-    console.error('Error getting database connection:', err);
+    console.error("❌ Could not connect to DB:", err);
     res.status(500).send('Database connection error');
   }
 });
+
 
 // ImageKit authentication endpoint (for client-side uploads if needed)
 app.get('/imagekit-auth', (req, res) => {
