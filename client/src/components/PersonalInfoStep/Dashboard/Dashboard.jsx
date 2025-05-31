@@ -5,6 +5,7 @@ import Filters from '../../Filters/Filters';
 import Skeleton from '../../Skeleton/Skeleton';
 import Toggle from '../../Toggle/Toggle';
 import AdminNavbar from '../../AdminNavbar/AdminNavbar';
+import { FiDownload } from 'react-icons/fi';
 
 const Dashboard = () => {
   const [entries, setEntries] = useState([]);
@@ -946,31 +947,23 @@ const Dashboard = () => {
       <button
   onClick={async () => {
     try {
-      // Fetch the file first to ensure it's accessible
       const response = await fetch(selectedEntry.resumeFile);
       if (!response.ok) throw new Error('Failed to fetch file');
-      
-      // Get the blob data
+
       const blob = await response.blob();
-      
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      
-      // Extract filename from URL or use default
-      const filename = selectedEntry.resumeFile.split('/').pop() || 
-                     `resume_${selectedEntry.fullName || 'candidate'}.pdf`;
-      
-      // Set download attributes
+
+      const filename = selectedEntry.resumeFile.split('/').pop() ||
+        `resume_${selectedEntry.fullName || 'candidate'}.pdf`;
+
       link.setAttribute('download', filename);
       link.setAttribute('target', '_blank');
-      
-      // Trigger download
+
       document.body.appendChild(link);
       link.click();
-      
-      // Cleanup
+
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -978,10 +971,10 @@ const Dashboard = () => {
       alert('Failed to download file. Please try again or contact support.');
     }
   }}
-  className="absolute top-2 right-18 bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg z-50 hover:bg-blue-800 transition"
+  className="absolute top-2 right-18 cursor-pointer bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg z-50 hover:bg-blue-800 transition"
   title="Download"
 >
-  ⬇
+  <FiDownload size={20} />
 </button>
 
       <iframe
