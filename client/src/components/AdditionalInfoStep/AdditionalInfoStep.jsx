@@ -35,7 +35,7 @@ const AdditionalInfoStep = ({
             }`}
           >
              <option value="">Select visa status</option>
-  <option value="Working Visa">Working Visa</option>
+  <option value="Work Visa">Work Visa</option>
   <option value="Visit Visa">Visit Visa</option>
   <option value="Family Visa">Family Visa</option>
   <option value="Flexi Visa">Flexi Visa</option>
