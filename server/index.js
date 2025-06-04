@@ -320,7 +320,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
       const baseColumns = [
         'email', 'fullName', 'dateOfBirth','gender', 'nationality', 'mobileContact', 'whatsapp', 'currentAddress',
         'postalCode', 'city', 'country', 'cprNationalId', 'passportId', 'passportValidity', 'educationLevel', 
-        'courseDegree', 'currentlyEmployed', 'employmentDesired', 'availableStart', 'shiftAvailable', 
+        'courseDegree', 'currentlyEmployed', 'employmentDesired','yearsOfExperience', 'availableStart', 'shiftAvailable', 
         'canTravel', 'drivingLicense', 'skills', 'ref1Name', 'ref1Contact', 'ref1Email', 'ref2Name', 
         'ref2Contact', 'ref2Email', 'ref3Name', 'ref3Contact', 'ref3Email', 'visaStatus', 'visaValidity', 
         'expectedSalary', 'clientLeadsStrategy', 'resumeFile', 'fileType'
@@ -338,7 +338,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         data.email, data.fullName, data.dateOfBirth, data.gender, data.nationality, data.mobileContact, 
         data.whatsapp, data.currentAddress, data.postalCode, data.city, data.country,
         data.cprNationalId, data.passportId, data.passportValidity, data.educationLevel, 
-        data.courseDegree, data.currentlyEmployed, data.employmentDesired, data.availableStart, 
+        data.courseDegree, data.currentlyEmployed, data.employmentDesired, data.yearsOfExperience, data.availableStart, 
         data.shiftAvailable, data.canTravel, data.drivingLicense, data.skills,
         data.ref1Name, data.ref1Contact, data.ref1Email, data.ref2Name, data.ref2Contact, 
         data.ref2Email, data.ref3Name, data.ref3Contact, data.ref3Email,
