@@ -318,7 +318,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
       const hasOriginalFilename = columnNames.includes('originalFilename');
 
       const baseColumns = [
-        'email', 'fullName', 'dateOfBirth', 'nationality', 'mobileContact', 'whatsapp', 'currentAddress',
+        'email', 'fullName', 'dateOfBirth','gender', 'nationality', 'mobileContact', 'whatsapp', 'currentAddress',
         'postalCode', 'city', 'country', 'cprNationalId', 'passportId', 'passportValidity', 'educationLevel', 
         'courseDegree', 'currentlyEmployed', 'employmentDesired', 'availableStart', 'shiftAvailable', 
         'canTravel', 'drivingLicense', 'skills', 'ref1Name', 'ref1Contact', 'ref1Email', 'ref2Name', 
@@ -335,7 +335,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
       const sql = `INSERT INTO form_entries (${validColumns.join(', ')}) VALUES (${placeholders})`;
 
       const baseValues = [
-        data.email, data.fullName, data.dateOfBirth, data.nationality, data.mobileContact, 
+        data.email, data.fullName, data.dateOfBirth, data.gender, data.nationality, data.mobileContact, 
         data.whatsapp, data.currentAddress, data.postalCode, data.city, data.country,
         data.cprNationalId, data.passportId, data.passportValidity, data.educationLevel, 
         data.courseDegree, data.currentlyEmployed, data.employmentDesired, data.availableStart, 
