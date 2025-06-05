@@ -31,7 +31,7 @@ const EducationWorkStep = ({ formData, errors, handleChange }) => {
             onChange={handleChange}
             className={`w-full px-4 py-2 border rounded-lg  focus:ring-primary focus:border-transparent ${errors.educationLevel ? 'border-red-500' : 'border-gray-300'}`}
           >
-            <option value="">Select position</option>
+            <option value="">Select Education Level</option>
             <option value="Secondary Level">Secondary Level</option>
 <option value="College Graduate">College Graduate</option>
 <option value="Post Graduate">Post Graduate</option>
