@@ -1,6 +1,16 @@
 import { motion } from 'framer-motion';
 
 const EducationWorkStep = ({ formData, errors, handleChange }) => {
+  const handleSuggestionClick = (value) => {
+    // create a fake event object to call handleChange
+    const event = {
+      target: {
+        name: 'yearsOfExperience',
+        value: value
+      }
+    };
+    handleChange(event);
+  };
   return (
     <motion.div
       key="step2"
@@ -21,6 +31,7 @@ const EducationWorkStep = ({ formData, errors, handleChange }) => {
             onChange={handleChange}
             className={`w-full px-4 py-2 border rounded-lg  focus:ring-primary focus:border-transparent ${errors.educationLevel ? 'border-red-500' : 'border-gray-300'}`}
           >
+            <option value="">Select position</option>
             <option value="Secondary Level">Secondary Level</option>
 <option value="College Graduate">College Graduate</option>
 <option value="Post Graduate">Post Graduate</option>
@@ -79,6 +90,7 @@ const EducationWorkStep = ({ formData, errors, handleChange }) => {
           </select>
           {errors.employmentDesired && <p className="text-red-500 text-xs mt-1">{errors.employmentDesired}</p>}
         </div>
+        
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">When are you available to start?</label>
@@ -96,6 +108,41 @@ const EducationWorkStep = ({ formData, errors, handleChange }) => {
           </select>
           {errors.availableStart && <p className="text-red-500 text-xs mt-1">{errors.availableStart}</p>}
         </div>
+
+        <div className="relative">
+  <label className="block text-sm font-medium text-gray-700 mb-1">Years of Experience</label>
+  <div className="flex items-center">
+    <input
+      type="text"
+      name="yearsOfExperience"
+      value={formData.yearsOfExperience}
+      onChange={handleChange}
+      className={`w-full px-4 py-2 border rounded-lg focus:ring-primary focus:border-transparent ${
+        errors.yearsOfExperience ? 'border-red-500' : 'border-gray-300'
+      }`}
+      placeholder="Fresher or number (e.g. 1, 2, 5)"
+    />
+  </div>
+  {typeof formData.yearsOfExperience === 'string' &&
+  formData.yearsOfExperience.toLowerCase().startsWith('f') &&
+  !formData.yearsOfExperience.toLowerCase().startsWith('fresher') && (
+
+    <div className="absolute z-10 mt-1 w-full rounded-md shadow-lg bg-white">
+      <div className="py-1">
+      <div
+  className="px-4 py-2 text-sm cursor-pointer text-gray-800 hover:bg-gray-100"
+  onClick={() => handleSuggestionClick('Fresher')}
+>
+  Fresher (0 years)
+</div>
+      </div>
+    </div>
+  )}
+  {errors.yearsOfExperience && (
+    <p className="text-red-500 text-xs mt-1">{errors.yearsOfExperience}</p>
+  )}
+</div>
+
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Shift available to work?</label>

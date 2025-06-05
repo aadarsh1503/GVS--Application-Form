@@ -4,42 +4,25 @@ import { useState, useEffect } from 'react';
 const MAX_REFERENCES = 3;
 
 const ReferencesStep = ({ formData, errors, handleChange }) => {
-  const [referenceCount, setReferenceCount] = useState(1);
+  const [referenceCount, setReferenceCount] = useState(MAX_REFERENCES); // Set to show all references by default
 
-  useEffect(() => {
-    // Auto-increase count if some refs are already filled (for validation reset cases)
-    let filledCount = 0;
-    if (formData.ref2Name || formData.ref2Contact || formData.ref2Email) filledCount++;
-    if (formData.ref3Name || formData.ref3Contact || formData.ref3Email) filledCount++;
-    setReferenceCount(1 + filledCount);
-  }, []);
   const removeReference = (index) => {
     const refNum = index + 1;
     const updatedData = { ...formData };
-  
+
     delete updatedData[`ref${refNum}Name`];
     delete updatedData[`ref${refNum}Contact`];
     delete updatedData[`ref${refNum}Email`];
-  
+
     handleChange({ target: { name: `ref${refNum}Name`, value: '' } }); // force rerender
-    setReferenceCount((prev) => Math.max(1, prev - 1));
   };
+
   const renderReference = (index) => {
     const refNum = index + 1;
   
     return (
       <div key={refNum} className="bg-gray-50 p-4 rounded-lg relative border">
         <h3 className="font-medium text-gray-800 mb-3">Reference #{refNum}</h3>
-  
-        {refNum > 1 && (
-          <button
-            type="button"
-            onClick={() => removeReference(index)}
-            className="absolute top-3 right-3 text-sm text-red-600 hover:underline"
-          >
-            Remove
-          </button>
-        )}
   
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -100,22 +83,11 @@ const ReferencesStep = ({ formData, errors, handleChange }) => {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <h2 className="text-2xl font-bold text-dark mb-6">Character References</h2>
+      <h2 className="text-2xl font-bold text-dark mb-6">Business References</h2>
       <p className="text-gray-600 mb-4"></p>
 
-      {/* Render references */}
-      {[...Array(referenceCount)].map((_, idx) => renderReference(idx))}
-
-      {/* Add button (only show if < 3 references) */}
-      {referenceCount < MAX_REFERENCES && (
-        <button
-          type="button"
-          onClick={() => setReferenceCount((prev) => Math.min(prev + 1, MAX_REFERENCES))}
-          className="inline-block text-sm text-blue-600 hover:underline mt-2"
-        >
-          + Add Reference
-        </button>
-      )}
+      {/* Render all three references */}
+      {[...Array(MAX_REFERENCES)].map((_, idx) => renderReference(idx))}
     </motion.div>
   );
 };

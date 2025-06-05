@@ -31,9 +31,13 @@ const Dashboard = () => {
     dateRange: 'all',
     customStart: '',
     customEnd: '',
+    canTravel: '',
+    drivingLicense: '',  
+    gender: '',      
     educationLevel: '',
     searchTerm: '',
-    employmentDesired: '' // Add this line
+    employmentDesired: '',
+    yearsOfExperience: '' // Add this line
   });
 
   useEffect(() => {
@@ -93,6 +97,24 @@ const Dashboard = () => {
         entry.educationLevel === filters.educationLevel
       );
     }
+      // Add driving license filter
+  if (filters.drivingLicense) {
+    result = result.filter(entry => 
+      String(entry.drivingLicense).toUpperCase() === filters.drivingLicense.toUpperCase()
+    );
+  }
+
+  // Add gender filter
+  if (filters.gender) {
+    result = result.filter(entry => 
+      entry.gender?.toLowerCase() === filters.gender.toLowerCase()
+    );
+  }
+  if (filters.canTravel) {
+    result = result.filter(entry => 
+      entry.canTravel?.toLowerCase() === filters.canTravel.toLowerCase()
+    );
+  }
 
     if (filters.dateRange && filters.dateRange !== 'all') {
       const now = new Date();
@@ -126,7 +148,26 @@ const Dashboard = () => {
         return entryDate >= startDate && entryDate <= now;
       });
     }
-
+    if (filters.yearsOfExperience) {
+      const expFilter = filters.yearsOfExperience.toLowerCase();
+      
+      result = result.filter(entry => {
+        const entryExp = entry.yearsOfExperience ? 
+          entry.yearsOfExperience.toString().toLowerCase() : 
+          '';
+        
+        // If "fresher" is selected
+        if (expFilter === 'fresher') {
+          return entryExp === '0' || !entryExp;
+        }
+        // If a number is entered
+        else if (!isNaN(expFilter)) {
+          return entryExp === expFilter;
+        }
+        // If partial match (like "f" for fresher)
+        return entryExp.includes(expFilter);
+      });
+    }
     setFilteredEntries(result);
   };
 
@@ -157,10 +198,14 @@ const Dashboard = () => {
       currentlyEmployed: '',
       dateRange: 'all',
       customStart: '',
+      drivingLicense: '',
+      canTravel: '',
+      gender: '',
       customEnd: '',
       educationLevel: '',
       searchTerm: '',
-      employmentDesired: ''
+      employmentDesired: '',
+      yearsOfExperience: '' // Add this line
     });
   };
   const renderField = (label, value) => {
@@ -196,6 +241,7 @@ const Dashboard = () => {
       ['Email', 'email'],
       ['Nationality', 'nationality'],
       ['Date of Birth', 'dateOfBirth'],
+      ['Gender', 'gender'],
       ['Mobile Contact', 'mobileContact'],
       ['WhatsApp', 'whatsapp'],
       ['Current Address', 'currentAddress'],
@@ -209,6 +255,7 @@ const Dashboard = () => {
       ['Course/Degree', 'courseDegree'],
       ['Currently Employed', 'currentlyEmployed'],
       ['Employment Desired', 'employmentDesired'],
+      ['Years of Experience', 'yearsOfExperience'],
       ['Available Start', 'availableStart'],
       ['Shift Available', 'shiftAvailable'],
       ['Can Travel', 'canTravel'],
@@ -273,6 +320,7 @@ const Dashboard = () => {
         'Email': entry.email,
         'Nationality': entry.nationality,
         'Date of Birth': entry.dateOfBirth,
+        'Gender': entry.gender,
         'Mobile Contact': entry.mobileContact,
         'WhatsApp': entry.whatsapp,
         'Postal Code': entry.postalCode || '',
@@ -286,6 +334,7 @@ const Dashboard = () => {
         'Course/Degree': entry.courseDegree,
         'Currently Employed': entry.currentlyEmployed === 'YES' ? 'Employed' : 'Not Employed',
         'Employment Desired': entry.employmentDesired,
+        'Years of Experience': entry.yearsOfExperience ? `${entry.yearsOfExperience} years` : '',
         'Available Start': entry.availableStart,
         'Shift Available': entry.shiftAvailable,
         'Can Travel': entry.canTravel,
@@ -312,9 +361,9 @@ const Dashboard = () => {
       
       // Set column widths for better spacing
       worksheet['!cols'] = [
-        { wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 },
+        { wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 },
         { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 20 },{ wch: 20 },{ wch: 20 },{ wch: 20 }, { wch: 25 },
-        { wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 },
+        { wch: 15 },{ wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 },
         { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 20 },
         { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
         { wch: 20 }, { wch: 25 }, { wch: 40 } , { wch: 180 }
@@ -372,6 +421,7 @@ const Dashboard = () => {
       const tableData = data.map(entry => [
         entry.fullName || '-',
         entry.email || '-',
+        entry.gender || '-',
         entry.nationality || '-',
         entry.currentlyEmployed === 'YES' ? 'Employed' : 'Not Employed',
         entry.employmentDesired || '-',
@@ -381,7 +431,7 @@ const Dashboard = () => {
   
       // Add summary table
       autoTable(doc, {
-        head: [['Name', 'Email', 'Nationality', 'Employment', 'Employment Desired', 'Expected Salary', 'Date Submitted']],
+        head: [['Name', 'Email', 'Gender', 'Nationality', 'Employment', 'Employment Desired', 'Expected Salary', 'Date Submitted']],
         body: tableData,
         startY: 25,
         theme: 'grid',
@@ -431,6 +481,8 @@ const Dashboard = () => {
           `Email: ${entry.email || '-'}`,
           `Nationality: ${entry.nationality || '-'}`,
           `Date of Birth: ${entry.dateOfBirth || '-'}`,
+          `Gender: ${entry.gender || '-'}`,
+`Years of Experience: ${entry.yearsOfExperience || '-'} years`,
           `Contact: ${entry.mobileContact || '-'}`,
           `WhatsApp: ${entry.whatsapp || '-'}`,
           `Postal Code: ${entry.postalCode || '-'}`,
@@ -812,6 +864,7 @@ const Dashboard = () => {
                         {renderField('Email', selectedEntry.email)}
   {renderField('Nationality', selectedEntry.nationality)}
   {renderField('Date of Birth', selectedEntry.dateOfBirth)}
+  {renderField('Gender', selectedEntry.gender)}
   {renderField('Mobile Contact', selectedEntry.mobileContact)}
   {renderField('WhatsApp', selectedEntry.whatsapp)}
   {renderField('Current Address', selectedEntry.currentAddress)}
@@ -831,19 +884,24 @@ const Dashboard = () => {
                     </div>
 
                     <div className="space-y-4">
-                      <div className={`p-4 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
-                        <h3 className={`font-semibold text-lg mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
-                          Education & Employment
-                        </h3>
-                        {renderField('Education Level', selectedEntry.educationLevel)}
-                        {renderField('Course/Degree', selectedEntry.courseDegree)}
-                        {renderField('Currently Employed', selectedEntry.currentlyEmployed)}
-                        {renderField('Employment Desired', selectedEntry.employmentDesired)}
-                        {renderField('Available Start Date', selectedEntry.availableStart)}
-                        {renderField('Shift Available', selectedEntry.shiftAvailable)}
-                        {renderField('Can Travel', selectedEntry.canTravel)}
-                        {renderField('Driving License', selectedEntry.drivingLicense)}
-                      </div>
+                    <div className={`p-4 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+  <h3 className={`font-semibold text-lg mb-3 ${darkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+    Education & Employment
+  </h3>
+  {renderField('Education Level', selectedEntry.educationLevel)}
+  {renderField('Course/Degree', selectedEntry.courseDegree)}
+  {renderField('Currently Employed', selectedEntry.currentlyEmployed)}
+  {renderField('Employment Desired', selectedEntry.employmentDesired)}
+  {renderField('Years of Experience', 
+  selectedEntry.yearsOfExperience === '0' || !selectedEntry.yearsOfExperience ? 
+    'Fresher' : 
+    `${selectedEntry.yearsOfExperience} years`
+)}
+  {renderField('Available Start Date', selectedEntry.availableStart)}
+  {renderField('Shift Available', selectedEntry.shiftAvailable)}
+  {renderField('Can Travel', selectedEntry.canTravel)}
+  {renderField('Driving License', selectedEntry.drivingLicense)}
+</div>
 
                       {selectedEntry.skills && (
                         <div className={`p-4 rounded-xl ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>

@@ -18,6 +18,7 @@ const MultiStepForm = () => {
       email: '',
       fullName: '',
       dateOfBirth: '',
+      gender:'',
       nationality: '',
       mobileContact: '',
       whatsapp: '',
@@ -97,6 +98,7 @@ const MultiStepForm = () => {
       email: '',
       fullName: '',
       dateOfBirth: '',
+      gender:'',
       nationality: '',
       mobileContact: '',
       whatsapp: '',
@@ -252,6 +254,8 @@ const MultiStepForm = () => {
       if (!formData.postalCode) newErrors.postalCode = 'PostalCode is required';
       if (!formData.country) newErrors.country = 'Country is required';
       if (!formData.city) newErrors.city = 'City is required';
+      if (!formData.gender) newErrors.gender = 'Gender is required';
+
 
   
       if (!formData.mobileContact) newErrors.mobileContact = 'Mobile number is required';
