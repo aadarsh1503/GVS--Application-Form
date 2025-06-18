@@ -15,29 +15,48 @@ const PersonalInfoStep = ({ formData, errors, handleChange }) => {
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
   const locationInputRef = useRef(null);
 
-  useEffect(() => {
-    // Fetch country data for both nationality and country fields
-    fetch('https://restcountries.com/v3.1/all')
-      .then(res => res.json())
-      .then(data => {
-        const countryNames = data.map(c => c.name.common).sort();
-        setCountries(countryNames);
-      });
 
-    // Detect user's country code for phone input default
-    const fetchCountryCode = async () => {
-      try {
-        const response = await fetch('https://freeipapi.com/api/json');
-        const data = await response.json();
-        if (data.countryCode) {
-          setDefaultCountry(data.countryCode.toLowerCase());
+    // Fetch country data for both nationality and country fields
+    useEffect(() => {
+      // Fetch country data for nationality and country fields
+      fetch('https://restcountries.com/v3.1/all?fields=name')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const countryNames = data
+              .map(c => c.name?.common)
+              .filter(Boolean) // Remove undefined/null names
+              .sort();
+            setCountries(countryNames);
+          } else {
+            console.error("Country API did not return an array", data);
+            setCountries([]);
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching countries:", err);
+          setCountries([]);
+        });
+    
+      // Detect user's country code for phone input default
+      const fetchCountryCode = async () => {
+        try {
+          const response = await fetch('/ipapi/api/json');
+          const data = await response.json();
+          if (data.countryCode) {
+            setDefaultCountry(data.countryCode.toLowerCase());
+          } else {
+            setDefaultCountry('us');
+          }
+        } catch (error) {
+          console.error("Error fetching country code:", error);
+          setDefaultCountry('us');
         }
-      } catch (error) {
-        setDefaultCountry('us');
-      }
-    };
-    fetchCountryCode();
-  }, []);
+      };
+    
+      fetchCountryCode();
+    }, []);
+    
 
   const fetchLocationSuggestions = async (query, type) => {
     if (query.length < 2) {

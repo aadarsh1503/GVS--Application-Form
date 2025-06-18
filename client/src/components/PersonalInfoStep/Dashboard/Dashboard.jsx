@@ -116,38 +116,49 @@ const Dashboard = () => {
     );
   }
 
-    if (filters.dateRange && filters.dateRange !== 'all') {
-      const now = new Date();
-      let startDate = new Date();
-      
-      switch (filters.dateRange) {
-        case 'today':
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case '24h':
-          startDate.setHours(now.getHours() - 24);
-          break;
-        case '7d':
-          startDate.setDate(now.getDate() - 7);
-          break;
-        case '30d':
-          startDate.setDate(now.getDate() - 30);
-          break;
+  if (filters.dateRange && filters.dateRange !== 'all') {
+    let now = new Date();
+    let startDate = new Date();
+  
+    switch (filters.dateRange) {
+      case 'today':
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startDate.setDate(now.getDate() - 7);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case '30d':
+        startDate.setDate(now.getDate() - 30);
+        startDate.setHours(0, 0, 0, 0);
+        break;
         case '1y':
-          startDate.setFullYear(now.getFullYear() - 1);
+          const lastYear = now.getFullYear() - 1;
+          startDate = new Date(`${lastYear}-01-01T00:00:00`);
+          now = new Date(`${lastYear}-12-31T23:59:59`);
           break;
-        case 'custom':
-          if (filters.customStart) {
-            startDate = new Date(filters.customStart);
-          }
-          break;
-      }
-
-      result = result.filter(entry => {
-        const entryDate = new Date(entry.submittedAt);
-        return entryDate >= startDate && entryDate <= now;
-      });
+        
+      case 'custom':
+        if (filters.customStart) {
+          startDate = new Date(filters.customStart);
+          startDate.setHours(0, 0, 0, 0);
+        }
+        if (filters.customEnd) {
+          now = new Date(filters.customEnd);
+          now.setHours(23, 59, 59, 999);
+        }
+        break;
     }
+  
+    result = result.filter(entry => {
+      const entryDate = new Date(entry.submittedAt);
+      return entryDate >= startDate && entryDate <= now;
+    });
+  }
+  
     if (filters.yearsOfExperience) {
       const expFilter = filters.yearsOfExperience.toLowerCase();
       
@@ -319,7 +330,8 @@ const Dashboard = () => {
         'Name': entry.fullName,
         'Email': entry.email,
         'Nationality': entry.nationality,
-        'Date of Birth': entry.dateOfBirth,
+        'Date of Birth': entry.dateOfBirth ? new Date(entry.dateOfBirth).toISOString().split('T')[0] : '',
+
         'Gender': entry.gender,
         'Mobile Contact': entry.mobileContact,
         'WhatsApp': entry.whatsapp,
@@ -341,7 +353,8 @@ const Dashboard = () => {
         'Driving License': entry.drivingLicense,
         'Skills': entry.skills,
         'Visa Status': entry.visaStatus,
-        'Visa Validity': entry.visaValidity,
+        'Visa Validity': entry.visaValidity ? new Date(entry.visaValidity).toISOString().split('T')[0] : '',
+
         'Expected Salary': entry.expectedSalary,
         'Client Leads Strategy': entry.clientLeadsStrategy,
         'Reference 1 Name': entry.ref1Name,
@@ -353,41 +366,34 @@ const Dashboard = () => {
         'Reference 3 Name': entry.ref3Name,
         'Reference 3 Contact': entry.ref3Contact,
         'Reference 3 Email': entry.ref3Email,
-        'Submitted At': new Date(entry.submittedAt).toLocaleString(),
-        'Resume File': entry.resumeFile || ''
+        'Resume File': 'Resume Link', // show only label, not link
+        'Submitted At': entry.submittedAt ? new Date(entry.submittedAt).toISOString().split('T')[0] : '',
+
       }));
   
       const worksheet = XLSX.utils.json_to_sheet(excelData);
-      
-      // Set column widths for better spacing
-      worksheet['!cols'] = [
-        { wch: 20 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 },
-        { wch: 30 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 20 },{ wch: 20 },{ wch: 20 },{ wch: 20 }, { wch: 25 },
-        { wch: 15 },{ wch: 15 }, { wch: 25 }, { wch: 18 }, { wch: 18 }, { wch: 15 }, { wch: 15 },
-        { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 30 }, { wch: 20 },
-        { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 20 }, { wch: 25 }, { wch: 20 },
-        { wch: 20 }, { wch: 25 }, { wch: 40 } , { wch: 180 }
-      ];
   
-      // Add hyperlinks for Resume File column
-      const resumeColIndex = 36; // zero-based index for 'Resume File' column
-
+      // Dynamically get column index of "Resume File"
+      const header = Object.keys(excelData[0]);
+      const resumeColIndex = header.indexOf('Resume File');
+  
+      worksheet['!cols'] = header.map(() => ({ wch: 25 }));
+      worksheet['!cols'][resumeColIndex] = { wch: 40 };
+  
+      // Replace "Resume File" cells with hyperlinks
       data.forEach((entry, idx) => {
-        const rowNumber = idx + 2; // header is row 1, data starts row 2
         if (entry.resumeFile) {
-          const cellAddress = XLSX.utils.encode_cell({ c: resumeColIndex, r: rowNumber - 1 });
-          // Create cell if doesn't exist
-          if (!worksheet[cellAddress]) worksheet[cellAddress] = {};
-          
-          worksheet[cellAddress].v = 'Resume Link'; // text shown
-          worksheet[cellAddress].t = 's';           // cell type string
-          worksheet[cellAddress].l = {               // hyperlink object
-            Target: entry.resumeFile ,
-            Tooltip: 'Open Resume'
+          const cellAddress = XLSX.utils.encode_cell({ c: resumeColIndex, r: idx + 1 });
+          worksheet[cellAddress] = {
+            v: 'Resume Link',
+            t: 's',
+            l: {
+              Target: entry.resumeFile,
+              Tooltip: 'Open Resume',
+            }
           };
         }
       });
-      
   
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Candidates');
@@ -396,6 +402,7 @@ const Dashboard = () => {
       console.error('Error exporting to Excel:', err);
     }
   };
+  
   
   const exportToPDF = async (data) => {
     try {
@@ -863,7 +870,7 @@ const Dashboard = () => {
                         </h3>
                         {renderField('Email', selectedEntry.email)}
   {renderField('Nationality', selectedEntry.nationality)}
-  {renderField('Date of Birth', selectedEntry.dateOfBirth)}
+  {renderField('Date of Birth', selectedEntry.dateOfBirth?.slice(0, 10))}
   {renderField('Gender', selectedEntry.gender)}
   {renderField('Mobile Contact', selectedEntry.mobileContact)}
   {renderField('WhatsApp', selectedEntry.whatsapp)}
@@ -967,7 +974,7 @@ const Dashboard = () => {
                         Visa & Salary
                       </h3>
                       {renderField('Visa Status', selectedEntry.visaStatus)}
-                      {renderField('Visa Validity', selectedEntry.visaValidity)}
+                      {renderField('Visa Validity', selectedEntry.visaValidity?.slice(0, 10))}
                       {renderField('Expected Salary', selectedEntry.expectedSalary)}
                     </div>
 

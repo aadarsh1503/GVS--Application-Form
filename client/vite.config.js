@@ -13,8 +13,18 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      // Proxy all requests starting with /api to your backend server at localhost:5000
-      '/api': 'http://localhost:5000',
-    },
-  },
+      // Proxy to local backend
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      // Proxy to external IP API
+      '/ipapi': {
+        target: 'https://freeipapi.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ipapi/, '')
+      }
+    }
+  }
 })
