@@ -378,15 +378,29 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
 
 app.get('/ipapi', async (req, res) => {
   try {
-    console.log('↗ Forwarding request to IP API');
-    const { data } = await axios.get('https://freeipapi.com/api/json');
+    let clientIP =
+      req.headers['x-forwarded-for']?.split(',')[0] ||
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      req.connection?.socket?.remoteAddress;
+
+    // fallback if localhost (dev mode)
+    if (clientIP === '::1' || clientIP === '127.0.0.1') {
+      clientIP = '8.8.8.8';
+    }
+
+    console.log('📍 Client IP:', clientIP);
+
+    const { data } = await axios.get(`https://freeipapi.com/api/json/${clientIP}`);
     console.log('✅ Response from IP API:', data);
+
     res.json(data);
   } catch (err) {
     console.error('❌ Error fetching from IP API:', err.message);
     res.status(500).json({ error: 'Failed to fetch IP info' });
   }
 });
+
 // ImageKit authentication endpoint (for client-side uploads if needed)
 app.get('/imagekit-auth', (req, res) => {
   try {
