@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 const ImageKit = require('imagekit');
 require('dotenv').config();
 
@@ -375,7 +376,17 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
   }
 });
 
-
+app.get('/ipapi', async (req, res) => {
+  try {
+    console.log('↗ Forwarding request to IP API');
+    const { data } = await axios.get('https://freeipapi.com/api/json');
+    console.log('✅ Response from IP API:', data);
+    res.json(data);
+  } catch (err) {
+    console.error('❌ Error fetching from IP API:', err.message);
+    res.status(500).json({ error: 'Failed to fetch IP info' });
+  }
+});
 // ImageKit authentication endpoint (for client-side uploads if needed)
 app.get('/imagekit-auth', (req, res) => {
   try {
