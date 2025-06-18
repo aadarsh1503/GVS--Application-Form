@@ -378,9 +378,10 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
 
 app.get('/ipapi', async (req, res) => {
   try {
-    console.log('↗ Forwarding request to IP API');
-    const { data } = await axios.get('https://freeipapi.com/api/json');
-    console.log('✅ Response from IP API:', data);
+    const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    console.log('📍 Client IP:', clientIp);
+
+    const { data } = await axios.get(`https://freeipapi.com/api/json/${clientIp}`);
     res.json(data);
   } catch (err) {
     console.error('❌ Error fetching from IP API:', err.message);
