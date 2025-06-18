@@ -20,11 +20,10 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, '')
       },
       // Proxy to external IP API
-      '/ipapi': {
-        target: 'https://freeipapi.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/ipapi/, '')
-      }
+//       '/ipapi': {
+//   target: 'http://localhost:5000',
+//   changeOrigin: true,
+// }
     }
   }
 })

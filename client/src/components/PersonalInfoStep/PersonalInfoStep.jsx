@@ -41,7 +41,7 @@ const PersonalInfoStep = ({ formData, errors, handleChange }) => {
       // Detect user's country code for phone input default
       const fetchCountryCode = async () => {
         try {
-          const response = await fetch('/ipapi/api/json');
+          const response = await fetch('https://gvs-application-form-1.onrender.com/ipapi');
           const data = await response.json();
           if (data.countryCode) {
             setDefaultCountry(data.countryCode.toLowerCase());
