@@ -271,7 +271,16 @@ app.get('/admin/form-entries', async (req, res) => {
 app.post('/submit-form', upload.single('file'), async (req, res) => {
   console.log("🔹 Received a POST request to /submit-form");
 
-  const data = req.body;
+  // Helper function to convert empty fields to NULL
+  function normalizeEmptyFields(obj) {
+    const result = {};
+    for (const key in obj) {
+      result[key] = obj[key] === '' ? null : obj[key];
+    }
+    return result;
+  }
+
+  const data = normalizeEmptyFields(req.body);
   const file = req.file;
 
   console.log("📥 Form Data:", data);
@@ -375,6 +384,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
     res.status(500).send('Database connection error');
   }
 });
+
 
 app.get('/ipapi', async (req, res) => {
   try {
