@@ -101,7 +101,7 @@ app.get('/download-file', async (req, res) => {
 
     return res.redirect(url);
   } catch (error) {
-    console.error('Download error:', error);
+    
     res.status(500).send('Error downloading file');
   }
 });
@@ -122,7 +122,7 @@ app.post('/admin/signup', async (req, res) => {
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ message: 'User already exists' });
     }
-    console.error(err);
+    
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -145,7 +145,7 @@ app.post('/admin/login', async (req, res) => {
     );
     res.json({ token });
   } catch (err) {
-    console.error(err);
+    
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -262,14 +262,14 @@ app.get('/admin/form-entries', async (req, res) => {
 
     res.status(200).json(processedResults);
   } catch (err) {
-    console.error('Error fetching form entries:', err);
+    
     res.status(500).send('Error retrieving data');
   }
 });
 
 // Form submission with transaction support and column check
 app.post('/submit-form', upload.single('file'), async (req, res) => {
-  console.log("🔹 Received a POST request to /submit-form");
+  
 
   // Helper function to convert empty fields to NULL
   function normalizeEmptyFields(obj) {
@@ -283,15 +283,14 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
   const data = normalizeEmptyFields(req.body);
   const file = req.file;
 
-  console.log("📥 Form Data:", data);
-  console.log("📎 Uploaded File:", file);
+
 
   try {
     const connection = await pool.getConnection();
-    console.log("🔌 Database connection established");
+    
 
     await connection.beginTransaction();
-    console.log("🔁 Transaction started");
+   
 
     try {
       let fileUrl = null;
@@ -311,7 +310,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         });
 
         fileUrl = result.url;
-        console.log("✅ File uploaded to ImageKit:", fileUrl);
+        
       }
 
       // Check available columns
@@ -323,7 +322,7 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
       `);
 
       const columnNames = columns.map(col => col.COLUMN_NAME);
-      console.log("🧱 Table Columns:", columnNames);
+    
 
       const hasOriginalFilename = columnNames.includes('originalFilename');
 
@@ -361,26 +360,25 @@ app.post('/submit-form', upload.single('file'), async (req, res) => {
         values.push(originalFilename);
       }
 
-      console.log("📝 SQL Query:", sql);
-      console.log("📦 SQL Values:", values);
+
 
       await connection.query(sql, values);
-      console.log("✅ Data inserted successfully");
+
 
       await connection.commit();
-      console.log("🔒 Transaction committed");
+   
 
       res.status(200).send('Form submitted successfully!');
     } catch (err) {
       await connection.rollback();
-      console.error("❌ Error during DB operation:", err);
+     
       res.status(500).send('Error saving data');
     } finally {
       connection.release();
-      console.log("🔓 Connection released");
+      
     }
   } catch (err) {
-    console.error("❌ Could not connect to DB:", err);
+    
     res.status(500).send('Database connection error');
   }
 });
@@ -399,14 +397,14 @@ app.get('/ipapi', async (req, res) => {
       clientIP = '8.8.8.8';
     }
 
-    console.log('📍 Client IP:', clientIP);
+   
 
     const { data } = await axios.get(`https://freeipapi.com/api/json/${clientIP}`);
-    console.log('✅ Response from IP API:', data);
+    
 
     res.json(data);
   } catch (err) {
-    console.error('❌ Error fetching from IP API:', err.message);
+   
     res.status(500).json({ error: 'Failed to fetch IP info' });
   }
 });
@@ -417,7 +415,7 @@ app.get('/imagekit-auth', (req, res) => {
     const authenticationParameters = imagekit.getAuthenticationParameters();
     res.json(authenticationParameters);
   } catch (err) {
-    console.error('ImageKit auth error:', err);
+    
     res.status(500).send('Error generating auth parameters');
   }
 });
@@ -440,7 +438,7 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
+
   res.status(500).send('Internal Server Error');
 });
 
