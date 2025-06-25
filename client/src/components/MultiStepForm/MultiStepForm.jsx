@@ -12,7 +12,7 @@ import { useLocation } from 'react-router-dom';
 
 const MultiStepForm = () => {
   const { pathname } = useLocation();
-  console.log('Component initialized');
+ 
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
       email: '',
@@ -76,7 +76,7 @@ const MultiStepForm = () => {
   }, [step]);
 
   useEffect(() => {
-      console.log('Step changed to:', step);
+     
       // Update progress width when step changes
       const width = `${((step - 1) / (steps.length - 1)) * 100}%`;
       setProgressWidth(width);
@@ -191,7 +191,7 @@ const MultiStepForm = () => {
   };
   
   const handleChange = (e) => {
-      console.log('Field changed:', e.target.name, 'Value:', e.target.value);
+     
       const { name, value } = e.target;
       setFormData((prevData) => ({
           ...prevData,
@@ -204,11 +204,11 @@ const MultiStepForm = () => {
   };
 
   const handleFileChange = (e) => {
-      console.log('File selected:', e.target.files[0]?.name);
+     
       const selectedFile = e.target.files[0];
       if (selectedFile) {
           if (selectedFile.size > 10 * 1024 * 1024) {
-              console.log('File too large:', selectedFile.size);
+             
               setFileError('File size must be less than 10 MB');
               setFile(null);
               toast.error("📁 File too big! Max 10MB allowed.", {
@@ -223,7 +223,7 @@ const MultiStepForm = () => {
                   style: { backgroundColor: '#FEE2E2', color: '#B91C1C' }
               });
           } else {
-              console.log('File accepted');
+             
               setFile(selectedFile);
               setFileError('');
               toast.success("📄 File uploaded successfully!", {
@@ -242,11 +242,11 @@ const MultiStepForm = () => {
   };
 
   const validateStep = (step) => {
-    console.log('Validating step:', step);
+   
     const newErrors = {};
   
     if (step === 1) {
-      console.log('Validating personal info fields');
+      
       if (!formData.email) newErrors.email = 'Email is required';
       else if (!/^\S+@\S+\.\S+$/.test(formData.email)) newErrors.email = 'Invalid email format';
   
@@ -277,7 +277,7 @@ const MultiStepForm = () => {
     }
   
     if (step === 2) {
-      console.log('Validating education/work fields');
+     
       if (!formData.educationLevel) newErrors.educationLevel = 'Education level is required';
       if (!formData.employmentDesired) newErrors.employmentDesired = 'Employment desired field is required';
       if (!formData.courseDegree) newErrors.courseDegree = 'Course/Degree is required';
@@ -290,7 +290,7 @@ const MultiStepForm = () => {
     }
   
     if (step === 3) {
-      console.log('Validating references fields');
+  
       for (let i = 1; i <= 3; i++) {
         const name = formData[`ref${i}Name`];
         const contact = formData[`ref${i}Contact`];
@@ -318,7 +318,7 @@ const MultiStepForm = () => {
     
     
     if (step === 4) {
-      console.log('Validating additional info fields');
+     
       if (!formData.clientLeadsStrategy) newErrors.clientLeadsStrategy = 'Client leads strategy is required';
     
       if (!formData.expectedSalary) {
@@ -335,7 +335,7 @@ const MultiStepForm = () => {
     }
     
   
-    console.log('Validation errors:', newErrors);
+   
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -344,14 +344,14 @@ const MultiStepForm = () => {
   const nextStep = (e) => {
     e?.preventDefault();
     
-    console.log('Next step clicked from step:', step);
+ 
     const valid = validateStep(step);
     if (valid) {
-        console.log('Step is valid, proceeding to next step');
+        
         setSubmittedStep(false);
         setStep(prev => Math.min(prev + 1, steps.length));
     } else {
-        console.log('Step is invalid, showing errors');
+        
         setSubmittedStep(step);
         toast.error("🚨 Please complete all fields!", {
             position: "top-right",
@@ -368,23 +368,23 @@ const MultiStepForm = () => {
   };
 
   const prevStep = () => {
-      console.log('Previous step clicked from step:', step);
+      
       setStep(prev => Math.max(prev - 1, 1));
   };
 
   const handleStepClick = (stepId) => {
-      console.log('Step navigation clicked for step:', stepId, 'Current step:', step);
+     
       if (stepId < step) {
           setStep(stepId);
       }
   };
 
   const handleSubmit = async (e) => {
-    console.log('Submit button clicked, current step:', step);
+   
     e?.preventDefault();
     
     if (step !== 4 || isLoading) { // Prevent submission if already loading
-        console.log('Attempted submission from step', step, 'but only step 4 is allowed');
+      
         return;
     }
     
@@ -392,7 +392,7 @@ const MultiStepForm = () => {
     setSubmittedStep(step);
 
     if (!valid) {
-        console.log('Submission validation failed');
+       
         toast.error("Please complete all fields!", {
             position: "top-right",
             autoClose: 5000,
@@ -409,14 +409,14 @@ const MultiStepForm = () => {
 
     try {
         setIsLoading(true); // Start loading
-        console.log('Preparing form data for submission');
+       
         const formDataToSend = new FormData();
         for (const key in formData) {
             formDataToSend.append(key, formData[key]);
         }
         if (file) formDataToSend.append('file', file);
 
-        console.log('Sending form data to server');
+       
         const response = await fetch('https://gvs-application-form-1.onrender.com/submit-form', {
             method: 'POST',
             body: formDataToSend,
@@ -427,7 +427,7 @@ const MultiStepForm = () => {
             throw new Error('Failed to submit');
         }
         
-        console.log('Submission successful');
+       
         setIsSubmitted(true);
         setShowSuccess(true);
         toast.success("🎉 Application submitted successfully!", {
@@ -517,7 +517,7 @@ const MultiStepForm = () => {
 //     }
 // };
   const renderStep = () => {
-      console.log('Rendering step:', step);
+     
       switch (step) {
           case 1:
               return (
